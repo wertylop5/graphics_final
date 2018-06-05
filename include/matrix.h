@@ -48,4 +48,7 @@ void push_polygon(struct Matrix *m,
 	float x2, float y2, float z2
 );
 
+//adds all polygons from src into dest
+void extend_polygons(struct Matrix *dest, struct Matrix *src);
+
 #endif

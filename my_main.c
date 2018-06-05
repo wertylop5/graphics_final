@@ -9,6 +9,7 @@
 #include "include/rcs.h"
 #include "include/shapes.h"
 #include "include/output.h"
+#include "include/raytrace.h"
 
 #include "compiler/symtab.h"
 
@@ -21,18 +22,18 @@ void pass_one(int *tot_frames, char *anim_name, int max_len) {
 	switch(op[x].opcode) {
 		case FRAMES:
 			(*tot_frames) = op[x].op.frames.num_frames;
-			printf("frames found: %d\n", *tot_frames);
+			//printf("frames found: %d\n", *tot_frames);
 		break;
 		
 		case VARY:
 			vary_found = 1;
-			printf("vary found\n");
+			//printf("vary found\n");
 		break;
 		
 		case BASENAME:
 			strncpy(anim_name, op[x].op.basename.p->name,
 					max_len);
-			printf("basename found: %s\n", anim_name);
+			//printf("basename found: %s\n", anim_name);
 		break;
 	}
 	x++;
@@ -122,12 +123,19 @@ struct vary_node** pass_two(int tot_frames) {
 void process_knobs(struct vary_node **knobs, int cur_frame) {
 	struct vary_node *temp = knobs[cur_frame];
 	while (temp != 0) {
-		printf("on knob: %s\n", temp->name);
+		//printf("on knob: %s\n", temp->name);
 		set_value(lookup_symbol(temp->name), temp->value);
 		temp = temp->next;
 	}
 }
 
+/*
+ * Restructured polygon additions:
+ *
+ * New polygons will be added to a temporary matrix.
+ * Transformations are applied to the temp matrix.
+ * Then, new polygons are added to cummulative matrix.
+ * */
 void my_main() {
 	int tot_frames = -1;	//if this still = -1, then user doesn't want animation
 	char anim_name[128];
@@ -143,6 +151,7 @@ void my_main() {
 	//struct Matrix *m = new_matrix(4, 1000);
 	struct Rcs_stack *s;
 	struct Light *l;
+	struct Matrix *polys;
 	float view_vect[] = {0, 0, 1};
 	
 	Frame f;
@@ -175,9 +184,10 @@ void my_main() {
 	for (cur_frame = 0; cur_frame < tot_frames; cur_frame++) {
 	s = new_rcs_stack(3);
 	l = new_light(67, 132, 75, 0, 255, 0, 1, 1, 1);
+	polys = new_matrix(4, 1);
 	clear(f, z);
 	
-	printf("frame %d\n", cur_frame);
+	//printf("frame %d\n", cur_frame);
 	if (tot_frames > 1) {
 		process_knobs(knobs, cur_frame);
 	}
@@ -264,7 +274,7 @@ void my_main() {
 			add_cube(p, temp[0], temp[1], temp[2],
 				temp2[0], temp2[1], temp2[2]);
 			matrix_mult(peek(s), p);
-			draw_polygons(f, z, p, &pixel, l, view_vect);
+			extend_polygons(polys, p);
 			free_matrix(p);
 		break;
 		}
@@ -277,7 +287,7 @@ void my_main() {
 			add_sphere(p, temp[0], temp[1], temp[2],
 				op[x].op.sphere.r, 12);
 			matrix_mult(peek(s), p);
-			draw_polygons(f, z, p, &pixel, l, view_vect);
+			extend_polygons(polys, p);
 			free_matrix(p);
 		break;
 		}
@@ -292,7 +302,7 @@ void my_main() {
 				op[x].op.torus.r1,
 				15);
 			matrix_mult(peek(s), p);
-			draw_polygons(f, z, p, &pixel, l, view_vect);
+			extend_polygons(polys, p);
 			free_matrix(p);
 		break;
 		}
@@ -317,6 +327,54 @@ void my_main() {
 		break;
 		
 		case DISPLAY:
+			clear(f, z);
+			pixel_color(&pixel, 0, 255, 0);
+			printf("poly count: %d\n", polys->back);
+			int w, h, cur_poly;
+			for (h = 0; h < IMG_HEIGHT; h++) {
+			for (w = 0; w < IMG_WIDTH; w++) {
+				struct Ray *prim = new_primary_ray(w, h, M_PI/2);
+				float t;
+				/*
+				for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
+					t = -FLT_MAX;
+					if (ray_triangle_intersect(
+							prim,
+							&t,
+							polys->m[0][cur_poly],
+							polys->m[1][cur_poly],
+							polys->m[2][cur_poly],
+							polys->m[0][cur_poly+1],
+							polys->m[1][cur_poly+1],
+							polys->m[2][cur_poly+1],
+							polys->m[0][cur_poly+2],
+							polys->m[1][cur_poly+2],
+							polys->m[2][cur_poly+2])) {
+						printf("found intersect\n");
+						if (t > 0 && t > prim->t) {
+							prim->t = t;
+						}
+					}
+				}
+				
+				if (prim->t > 0) {
+					printf("final t: %f\n", prim->t);
+					plot_point(f, z, w, h, 0, &pixel);
+				}
+				*/
+				if (ray_triangle_intersect(
+						prim,
+						&t,
+						-1, -1, -5,
+						1, -1, -5,
+						0, 1, -5)) {
+					printf("found intersect\n");
+					plot_point(f, z, w, h, 0, &pixel);
+				}
+				free_ray(prim);
+			}
+			}
+			//draw_polygons(f, z, polys, &pixel, l, view_vect);
 			display(f);
 		break;
 		};
@@ -326,12 +384,13 @@ void my_main() {
 		//save the frame
 		memset(frame_name, 0, sizeof(frame_name));
 		snprintf(frame_name, sizeof(frame_name), "%s%04d%s.png", FRAME_DIR, cur_frame, anim_name);
-		printf("%s\n", frame_name);
+		//printf("%s\n", frame_name);
 		save_png(f, frame_name);
 	}
 	
 	free_light(l);
 	free_stack(s);
+	free_matrix(polys);
 	}
 	
 	if (tot_frames > 1) {

@@ -125,3 +125,19 @@ void push_polygon(struct Matrix *m,
 	push_point(m, x2, y2, z2);
 }
 
+void extend_polygons(struct Matrix *dest, struct Matrix *src) {
+	int x;
+	for (x = 0; x < src->back; x+=3) {
+		push_polygon(dest,
+				src->m[0][x],
+				src->m[1][x],
+				src->m[2][x],
+				src->m[0][x+1],
+				src->m[1][x+1],
+				src->m[2][x+1],
+				src->m[0][x+2],
+				src->m[1][x+2],
+				src->m[2][x+2]);
+	}
+}
+

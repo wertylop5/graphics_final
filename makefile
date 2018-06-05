@@ -3,7 +3,7 @@ CC = gcc
 OUTPUT = picture.ppm *.gif
 EXEC = exec
 MATH_LIB = -lm
-SCRIPT=test_anim.mdl
+SCRIPT=test.mdl
 
 all: parser
 	./$(EXEC) $(SCRIPT)
