@@ -11,7 +11,7 @@ struct Ray* new_primary_ray(
 	//convert middle of pixel to NDC space
 	//the .5 is offset for the middle
 	float ndc_x = (x + .5)/(float)IMG_WIDTH;
-	float ndc_y = (y + .5)/(float)IMG_HEIGHT;
+	float ndc_y = (IMG_HEIGHT-1-y + .5)/(float)IMG_HEIGHT;
 	
 	//now convert to screen space
 	float screen_x = 2*ndc_x - 1.0f;

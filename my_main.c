@@ -333,11 +333,27 @@ void my_main() {
 			int w, h, cur_poly;
 			for (h = 0; h < IMG_HEIGHT; h++) {
 			for (w = 0; w < IMG_WIDTH; w++) {
+				//our range should be [-250, 250]?
+				//250 = tan(alpha/2)
+				//struct Ray *prim = new_primary_ray(w, h, 3.13359);
 				struct Ray *prim = new_primary_ray(w, h, M_PI/2);
 				float t;
 				/*
 				for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
-					t = -FLT_MAX;
+					//t = -FLT_MAX;
+					
+					printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n", 
+					      	polys->m[0][cur_poly],
+							polys->m[1][cur_poly],
+							polys->m[2][cur_poly],
+							polys->m[0][cur_poly+1],
+							polys->m[1][cur_poly+1],
+							polys->m[2][cur_poly+1],
+							polys->m[0][cur_poly+2],
+							polys->m[1][cur_poly+2],
+							polys->m[2][cur_poly+2]
+							);
+					
 					if (ray_triangle_intersect(
 							prim,
 							&t,
@@ -351,26 +367,35 @@ void my_main() {
 							polys->m[1][cur_poly+2],
 							polys->m[2][cur_poly+2])) {
 						printf("found intersect\n");
+						plot_point(f, z, w, h, 0, &pixel);
+						
 						if (t > 0 && t > prim->t) {
 							prim->t = t;
 						}
+						
 					}
 				}
+				*/
 				
+				/*
 				if (prim->t > 0) {
 					printf("final t: %f\n", prim->t);
 					plot_point(f, z, w, h, 0, &pixel);
 				}
 				*/
+				
+				
 				if (ray_triangle_intersect(
 						prim,
 						&t,
-						-1, -1, -5,
+						-1, -2, -5,
 						1, -1, -5,
 						0, 1, -5)) {
 					printf("found intersect\n");
 					plot_point(f, z, w, h, 0, &pixel);
 				}
+				
+				
 				free_ray(prim);
 			}
 			}
