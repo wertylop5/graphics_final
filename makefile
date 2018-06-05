@@ -1,4 +1,4 @@
-OBJS = draw.o output.o matrix.o parser.o shapes.o rcs.o lighting.o vmath.o symtab.o print_pcode.o my_main.o
+OBJS = draw.o output.o matrix.o parser.o shapes.o rcs.o lighting.o vmath.o symtab.o print_pcode.o raytrace.o my_main.o
 CC = gcc
 OUTPUT = picture.ppm *.gif
 EXEC = exec
@@ -55,6 +55,9 @@ lighting.o:
 
 vmath.o:
 	$(CC) $(DBG) -Wall -c vmath.c include/vmath.h
+
+raytrace.o:
+	$(CC) $(DBG) -Wall -c raytrace.c include/raytrace.h
 
 clean:
 	rm -rf *.o $(OUTPUT)
