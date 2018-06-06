@@ -335,8 +335,8 @@ void my_main() {
 			for (w = 0; w < IMG_WIDTH; w++) {
 				//our range should be [-250, 250]?
 				//250 = tan(alpha/2)
-				//struct Ray *prim = new_primary_ray(w, h, 3.13359);
-				struct Ray *prim = new_primary_ray(w, h, M_PI/2);
+				struct Ray *prim = new_primary_ray(w, h, 3.1335917);
+				//struct Ray *prim = new_primary_ray(w, h, M_PI/2);
 				float t;
 				
 				for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
@@ -354,6 +354,7 @@ void my_main() {
 							polys->m[2][cur_poly+2]
 							);
 					*/
+					
 					if (ray_triangle_intersect(
 							prim,
 							&t,
@@ -374,6 +375,7 @@ void my_main() {
 						}
 						
 					}
+					
 				}
 				
 				
@@ -388,9 +390,9 @@ void my_main() {
 				if (ray_triangle_intersect(
 						prim,
 						&t,
-						-1, -2, -5,
-						1, -1, -5,
-						0, 1, -5)) {
+						-1, -1, -5,
+						5, -1, -5,
+						0, 5, -5)) {
 					printf("found intersect\n");
 					plot_point(f, z, w, h, 0, &pixel);
 				}
