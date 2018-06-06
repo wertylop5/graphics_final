@@ -324,15 +324,18 @@ void add_sphere(struct Matrix *m, float cx, float cy, float cz, float r, int ste
 }
 
 struct Matrix* sphere_points(float cx, float cy, float cz, float r, int step) {
+	float x, y, z;
 	int t, t1;
 	struct Matrix *m = new_matrix(4, 1);
 	for (t = 0; t <= 360; t+=step) {
 	for (t1 = 0; t1 <= 180; t1+=step) {
-		push_point(m,
-			r*cosf(t1*(M_PI/180.0f)) + cx,
-			r*sinf(t1*(M_PI/180.0f))*cosf(t*(M_PI/180.0f)) + cy,
-			r*sinf(t1*(M_PI/180.0f))*sinf(t*(M_PI/180.0f)) + cz
-		);
+		x = r*cosf(t1*(M_PI/180.0f)) + cx;
+		y = r*sinf(t1*(M_PI/180.0f))*cosf(t*(M_PI/180.0f)) + cy;
+		z = r*sinf(t1*(M_PI/180.0f))*sinf(t*(M_PI/180.0f)) + cz;
+		//x = (x/(float)IMG_WIDTH);
+		//y = (y/(float)IMG_HEIGHT);
+		//printf("sphere gen: %f, %f, %f\n", x, y, z);
+		push_point(m, x, y, z);
 	}
 	}
 	return m;

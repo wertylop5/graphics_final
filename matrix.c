@@ -125,18 +125,28 @@ void push_polygon(struct Matrix *m,
 	push_point(m, x2, y2, z2);
 }
 
+float convert_to_world_x(float f) {
+	return (2*(f/(float)IMG_WIDTH)-1)*(IMG_WIDTH/(float)IMG_HEIGHT)*
+		tanf(M_PI/4);
+}
+
+float convert_to_world_y(float f) {
+	return (1-2*(f/(float)IMG_HEIGHT))*(IMG_WIDTH/(float)IMG_HEIGHT)*
+		tanf(M_PI/4);
+}
+
 void extend_polygons(struct Matrix *dest, struct Matrix *src) {
 	int x;
 	for (x = 0; x < src->back; x+=3) {
 		push_polygon(dest,
-				src->m[0][x],
-				src->m[1][x],
+				convert_to_world_x(src->m[0][x]),
+				convert_to_world_y(src->m[1][x]),
 				src->m[2][x],
-				src->m[0][x+1],
-				src->m[1][x+1],
+				convert_to_world_x(src->m[0][x+1]),
+				convert_to_world_y(src->m[1][x+1]),
 				src->m[2][x+1],
-				src->m[0][x+2],
-				src->m[1][x+2],
+				convert_to_world_x(src->m[0][x+2]),
+				convert_to_world_y(src->m[1][x+2]),
 				src->m[2][x+2]);
 	}
 }

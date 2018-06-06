@@ -11,6 +11,8 @@
 #include<math.h>
 #include<string.h>
 
+#include"dimen.h"
+
 struct Matrix {
 	float **m;
 	int rows;

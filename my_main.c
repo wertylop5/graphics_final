@@ -338,10 +338,10 @@ void my_main() {
 				//struct Ray *prim = new_primary_ray(w, h, 3.13359);
 				struct Ray *prim = new_primary_ray(w, h, M_PI/2);
 				float t;
-				/*
+				
 				for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
 					//t = -FLT_MAX;
-					
+					/*
 					printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n", 
 					      	polys->m[0][cur_poly],
 							polys->m[1][cur_poly],
@@ -353,7 +353,7 @@ void my_main() {
 							polys->m[1][cur_poly+2],
 							polys->m[2][cur_poly+2]
 							);
-					
+					*/
 					if (ray_triangle_intersect(
 							prim,
 							&t,
@@ -375,7 +375,7 @@ void my_main() {
 						
 					}
 				}
-				*/
+				
 				
 				/*
 				if (prim->t > 0) {
@@ -384,7 +384,7 @@ void my_main() {
 				}
 				*/
 				
-				
+				/*
 				if (ray_triangle_intersect(
 						prim,
 						&t,
@@ -394,7 +394,7 @@ void my_main() {
 					printf("found intersect\n");
 					plot_point(f, z, w, h, 0, &pixel);
 				}
-				
+				*/
 				
 				free_ray(prim);
 			}

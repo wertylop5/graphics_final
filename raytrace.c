@@ -81,6 +81,7 @@ char ray_triangle_intersect(
 	float a[] = {x1, y1, z1};
 	float b[] = {x2, y2, z2};
 	float c[] = {x3, y3, z3};
+	//printf("got %f, %f, %f\n", x1, y1, x2);
 	
 	float s[3], edge1[3], edge2[3];
 	subtract_vectors(s, ray->origin, a);
