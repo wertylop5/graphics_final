@@ -37,6 +37,10 @@ struct Ray* new_primary_ray(
 	//identity matrix is used
 	struct Matrix *camera_to_world = new_matrix(4, 4);
 	ident(camera_to_world);
+	struct Matrix *move_m = move(250, 250, -20);
+	matrix_mult(move_m, camera_to_world);
+	free_matrix(move_m);
+	
 	matrix_mult(camera_to_world, temp);
 	matrix_mult(camera_to_world, temp_origin);
 	
@@ -81,7 +85,7 @@ char ray_triangle_intersect(
 	float a[] = {x1, y1, z1};
 	float b[] = {x2, y2, z2};
 	float c[] = {x3, y3, z3};
-	//printf("got %f, %f, %f\n", x1, y1, x2);
+	//printf("got %f, %f, %f\n", z1, z2, z3);
 	
 	float s[3], edge1[3], edge2[3];
 	subtract_vectors(s, ray->origin, a);

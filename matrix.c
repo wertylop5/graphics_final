@@ -130,8 +130,8 @@ float convert_to_world_x(float f) {
 	return (2*(f/(float)IMG_WIDTH)-1)*(IMG_WIDTH/(float)IMG_HEIGHT)*
 		tanf(3.1335917/2);
 	*/
-	return (2*(f/(float)IMG_WIDTH)-1)*IMG_WIDTH;
-	//return f;
+	//return (2*(f/(float)IMG_WIDTH)-1)*IMG_WIDTH;
+	return f;
 }
 
 float convert_to_world_y(float f) {
@@ -139,8 +139,8 @@ float convert_to_world_y(float f) {
 	return (1-2*(f/(float)IMG_HEIGHT))*(IMG_WIDTH/(float)IMG_HEIGHT)*
 		tanf(3.1335917/2);
 	*/
-	return (1-2*(f/(float)IMG_HEIGHT))*IMG_HEIGHT;
-	//return f;
+	//return (1-2*(f/(float)IMG_HEIGHT))*IMG_HEIGHT;
+	return f;
 }
 
 void extend_polygons(struct Matrix *dest, struct Matrix *src) {

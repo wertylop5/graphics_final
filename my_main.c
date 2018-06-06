@@ -340,7 +340,7 @@ void my_main() {
 				float t;
 				
 				for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
-					//t = -FLT_MAX;
+					t = -FLT_MAX;
 					/*
 					printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n", 
 					      	polys->m[0][cur_poly],
@@ -367,10 +367,11 @@ void my_main() {
 							polys->m[0][cur_poly+2],
 							polys->m[1][cur_poly+2],
 							polys->m[2][cur_poly+2])) {
-						printf("found intersect\n");
-						plot_point(f, z, w, h, 0, &pixel);
+						//plot_point(f, z, w, h, 0, &pixel);
 						
 						if (t > 0 && t > prim->t) {
+							//printf("found intersect: %f\n", t);
+							plot_point(f, z, w, h, 0, &pixel);
 							prim->t = t;
 						}
 						
