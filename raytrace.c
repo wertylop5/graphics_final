@@ -29,7 +29,6 @@ struct Ray* new_primary_ray(
 			screen_x*fov_factor*aspect_ratio,
 			screen_y*fov_factor,
 			-1.0f);
-	//printf("tempz: %f\n", temp->m[2][0]);
 
 	struct Matrix *temp_origin = new_matrix(4, 1);
 	push_point(temp_origin, 0, 0, 0);
@@ -45,7 +44,6 @@ struct Ray* new_primary_ray(
 	
 	matrix_mult(camera_to_world, temp);
 	matrix_mult(camera_to_world, temp_origin);
-	//printf("tempz: %f\n", temp->m[2][0]);
 	
 	//now assemble the final ray and normalize it
 	struct Ray *res = (struct Ray*)malloc(sizeof(struct Ray));
@@ -53,9 +51,9 @@ struct Ray* new_primary_ray(
 	res->origin[1] = temp_origin->m[1][0];
 	res->origin[2] = temp_origin->m[2][0];
 	
-	res->direction[0] = temp->m[0][0];// - res->origin[0];
-	res->direction[1] = temp->m[1][0];// - res->origin[1];
-	res->direction[2] = temp->m[2][0];// - res->origin[2];
+	res->direction[0] = temp->m[0][0];
+	res->direction[1] = temp->m[1][0];
+	res->direction[2] = temp->m[2][0];
 	normalize(res->direction);
 	/*
 	printf("generating primary ray: %f, %f, %f\n", 
@@ -76,13 +74,6 @@ struct Ray* new_primary_ray(
 	free_matrix(temp);
 	free_matrix(temp_origin);
 	return res;
-}
-
-/*
- * eye origin: (250, 250, 40)
- * u: (1, 0, 0) - (250, 250, 40)*/
-struct Ray *new_alt(int x, int y, float fov) {
-	return 0;
 }
 
 char ray_triangle_intersect(
