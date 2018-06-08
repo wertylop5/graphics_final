@@ -79,8 +79,7 @@ struct Pixel* calc_ambient(struct Light *l, float aReflect) {
 
 struct Pixel* calc_diffuse(struct Light *l, float *normal, float dReflect) {
 	struct Pixel *res = (struct Pixel *)malloc(sizeof(struct Pixel));
-	float dot = dot_productd(normal, l->light_vector);
-	printf("normal: %f, %f, %f\n", normal[0], normal[1], normal[2]);
+	float dot = dot_product(normal, l->light_vector);
 	
 	//negative means its facing away from the light
 	if (dot < 0) {
