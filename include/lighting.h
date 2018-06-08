@@ -43,6 +43,9 @@ void free_light(struct Light *l);
 struct Pixel* get_lighting(struct Light *l, float *normal, float *view,
 		float aReflect, float dReflect, float sReflect);
 
+struct Pixel* get_lighting_matte(struct Light *l, float *normal,
+		float aReflect, float dReflect);
+
 struct Pixel* calc_ambient(struct Light *l, float aReflect);
 struct Pixel* calc_diffuse(struct Light *l, float *normal, float dReflect);
 struct Pixel* calc_specular(struct Light *l, float *normal, float *view,

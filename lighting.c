@@ -52,6 +52,21 @@ struct Pixel* get_lighting(struct Light *l, float *normal, float *view,
 	return a;
 }
 
+struct Pixel* get_lighting_matte(struct Light *l, float *normal,
+		float aReflect, float dReflect) {
+	struct Pixel *a = calc_ambient(l, aReflect);
+	struct Pixel *d = calc_diffuse(l, normal, dReflect);
+	
+	//don't go above 255
+	a->r = fminf(a->r + d->r, 255);
+	a->g = fminf(a->g + d->g, 255);
+	a->b = fminf(a->b + d->b, 255);
+	
+	free(d);
+	
+	return a;
+}
+
 struct Pixel* calc_ambient(struct Light *l, float aReflect) {
 	struct Pixel *res = (struct Pixel *)malloc(sizeof(struct Pixel));
 
@@ -64,7 +79,8 @@ struct Pixel* calc_ambient(struct Light *l, float aReflect) {
 
 struct Pixel* calc_diffuse(struct Light *l, float *normal, float dReflect) {
 	struct Pixel *res = (struct Pixel *)malloc(sizeof(struct Pixel));
-	float dot = dot_product(normal, l->light_vector);
+	float dot = dot_productd(normal, l->light_vector);
+	printf("normal: %f, %f, %f\n", normal[0], normal[1], normal[2]);
 	
 	//negative means its facing away from the light
 	if (dot < 0) {

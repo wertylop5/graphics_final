@@ -183,7 +183,7 @@ void my_main() {
 	if (tot_frames == -1) tot_frames = 1;
 	for (cur_frame = 0; cur_frame < tot_frames; cur_frame++) {
 	s = new_rcs_stack(3);
-	l = new_light(67, 132, 75, 0, 255, 0, 0, 0, 1);
+	l = new_light(0, 0, 0, 0, 255, 0, 0, 0, 1);
 	polys = new_matrix(4, 1);
 	clear(f, z);
 	
@@ -333,84 +333,85 @@ void my_main() {
 			int w, h, cur_poly;
 			for (h = 0; h < IMG_HEIGHT; h++) {
 			for (w = 0; w < IMG_WIDTH; w++) {
-				//our range should be [-250, 250]?
-				//250 = tan(alpha/2)
-				//struct Ray *prim = new_primary_ray(w, h, 3.1335917);
-				struct Ray *prim = new_primary_ray(w, h, M_PI/4);
-				float t;
+			//our range should be [-250, 250]?
+			//250 = tan(alpha/2)
+			//struct Ray *prim = new_primary_ray(w, h, 3.1335917);
+			struct Ray *prim = new_primary_ray(w, h, M_PI/4);
+			float t;
+			
+			for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
+				t = -FLT_MAX;
+				/*
+				printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n", 
+					polys->m[0][cur_poly],
+						polys->m[1][cur_poly],
+						polys->m[2][cur_poly],
+						polys->m[0][cur_poly+1],
+						polys->m[1][cur_poly+1],
+						polys->m[2][cur_poly+1],
+						polys->m[0][cur_poly+2],
+						polys->m[1][cur_poly+2],
+						polys->m[2][cur_poly+2]
+						);
 				
-				for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
-					t = -FLT_MAX;
-					/*
-					printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n", 
-					      	polys->m[0][cur_poly],
-							polys->m[1][cur_poly],
-							polys->m[2][cur_poly],
-							polys->m[0][cur_poly+1],
-							polys->m[1][cur_poly+1],
-							polys->m[2][cur_poly+1],
-							polys->m[0][cur_poly+2],
-							polys->m[1][cur_poly+2],
-							polys->m[2][cur_poly+2]
-							);
+				*/
+				if (ray_triangle_intersect(
+						prim,
+						&t,
+						polys->m[0][cur_poly],
+						polys->m[1][cur_poly],
+						polys->m[2][cur_poly],
+						polys->m[0][cur_poly+1],
+						polys->m[1][cur_poly+1],
+						polys->m[2][cur_poly+1],
+						polys->m[0][cur_poly+2],
+						polys->m[1][cur_poly+2],
+						polys->m[2][cur_poly+2])) {
+					//plot_point(f, z, w, h, 0, &pixel);
 					
-					*/
-					if (ray_triangle_intersect(
-							prim,
-							&t,
-							polys->m[0][cur_poly],
-							polys->m[1][cur_poly],
-							polys->m[2][cur_poly],
-							polys->m[0][cur_poly+1],
-							polys->m[1][cur_poly+1],
-							polys->m[2][cur_poly+1],
-							polys->m[0][cur_poly+2],
-							polys->m[1][cur_poly+2],
-							polys->m[2][cur_poly+2])) {
+					if (t < prim->t) {
+						//printf("found intersect: %f at %d, %d\n", t, w, h);
 						//plot_point(f, z, w, h, 0, &pixel);
-						
-						if (t < prim->t) {
-							//printf("found intersect: %f at %d, %d\n", t, w, h);
-							//plot_point(f, z, w, h, 0, &pixel);
-							float normal[3];
-							find_norm(polys, cur_poly, cur_poly+1, cur_poly+2, normal);
-							//printf("normal: %f, %f, %f\n", normal[0], normal[1], normal[2]);
-							struct Pixel *color = lambert_diffuse(l, normal);
-							color->r = color->r > 255 ? 255 : color->r;
-							color->g = color->g > 255 ? 255 : color->g;
-							color->b = color->b > 255 ? 255 : color->b;
-							printf("color: %d, %d, %d\n", color->r, color->g, color->b);
-							//printf("color: %d, %d, %d\n", color->r, color->g, color->b);
-							plot_point(f, z, w, h, 0, color);
-							free(color);
-							prim->t = t;
-						}
-						
+						float normal[3];
+						find_norm(polys, cur_poly, cur_poly+1, cur_poly+2, normal);
+						//printf("normal: %f, %f, %f\n", normal[0], normal[1], normal[2]);
+						//struct Pixel *color = lambert_diffuse(l, normal);
+						struct Pixel *color = get_lighting_matte(l, normal, 1, 1);
+						color->r = color->r > 255 ? 255 : color->r;
+						color->g = color->g > 255 ? 255 : color->g;
+						color->b = color->b > 255 ? 255 : color->b;
+						printf("color: %d, %d, %d\n", color->r, color->g, color->b);
+						//printf("color: %d, %d, %d\n", color->r, color->g, color->b);
+						plot_point(f, z, w, h, 0, color);
+						free(color);
+						prim->t = t;
 					}
 					
 				}
 				
-				
-				/*
-				if (prim->t > 0) {
-					printf("final t: %f\n", prim->t);
-					plot_point(f, z, w, h, 0, &pixel);
-				}
-				*/
-				
-				/*
-				if (ray_triangle_intersect(
-						prim,
-						&t,
-						-1, -1, -3,
-						5, -1, -3,
-						0, 5, -3)) {
-					printf("found intersect\n");
-					plot_point(f, z, w, h, 0, &pixel);
-				}
-				*/
-				
-				free_ray(prim);
+			}
+			
+			
+			/*
+			if (prim->t > 0) {
+				printf("final t: %f\n", prim->t);
+				plot_point(f, z, w, h, 0, &pixel);
+			}
+			*/
+			
+			/*
+			if (ray_triangle_intersect(
+					prim,
+					&t,
+					-1, -1, -3,
+					5, -1, -3,
+					0, 5, -3)) {
+				printf("found intersect\n");
+				plot_point(f, z, w, h, 0, &pixel);
+			}
+			*/
+			
+			free_ray(prim);
 			}
 			}
 			draw_polygons(f, z, polys, &pixel, l, view_vect);

@@ -288,7 +288,7 @@ void render_scanlines(Frame f, zbuffer b, struct Matrix *m, struct Pixel *p,
 }
 
 void clear(Frame f, zbuffer b) {
-	memset(f, 0, sizeof(Frame));
+	memset(f, 255, sizeof(Frame));
 	
 	int x, y;
 	for (y = 0; y < IMG_HEIGHT; y++)

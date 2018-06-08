@@ -10,6 +10,12 @@ void cross_product(float *out, float *a, float *b) {
 	out[2] = a[0]*b[1] - a[1]*b[0];
 }
 
+void cross_productd(double *out, double *a, double *b) {
+	out[0] = a[1]*b[2] - a[2]*b[1];
+	out[1] = a[2]*b[0] - a[0]*b[2];
+	out[2] = a[0]*b[1] - a[1]*b[0];
+}
+
 float triple_product(float *a, float *b, float *c) {
 	float temp[3];
 	cross_product(temp, a, b);
@@ -39,13 +45,13 @@ void normalize(float *v) {
 void find_norm(struct Matrix *m, int p1, int p2, int p3,
 		float *norm_out) {
 	//create vectors
-	float tempA[] = {
+	double tempA[] = {
 		m->m[0][p2] - m->m[0][p1],
 		m->m[1][p2] - m->m[1][p1],
 		m->m[2][p2] - m->m[2][p1],
 	};
 	
-	float tempB[] = {
+	double tempB[] = {
 		m->m[0][p3] - m->m[0][p1],
 		m->m[1][p3] - m->m[1][p1],
 		m->m[2][p3] - m->m[2][p1]
