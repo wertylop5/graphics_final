@@ -15,6 +15,18 @@
 //used for drawing curves
 #define STEP	.01f
 
+//object's behavior under light
+#define DIFFUSE_AND_GLOSSY		0
+#define REFLECTION_AND_REFRACTION	1
+#define REFLECTION 			2
+
+struct Object {
+	struct Matrix *polys;
+	float diffuse_color[3];
+	int behavior;
+	float albedo;	//for lambert diffuse
+};
+
 //returns transformation matrices
 struct Matrix* scale(float a, float b, float c);
 struct Matrix* move(float a, float b, float c);

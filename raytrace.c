@@ -1,6 +1,8 @@
 #include<math.h>
 #include<stdlib.h>
 
+#include<float.h>
+
 #include"include/raytrace.h"
 #include"include/dimen.h"
 #include"include/vmath.h"
@@ -68,7 +70,7 @@ struct Ray* new_primary_ray(
 			res->origin[2]);
 	*/
 
-	res->t = -1;
+	res->t = FLT_MAX;
 	
 	free_matrix(camera_to_world);
 	free_matrix(temp);

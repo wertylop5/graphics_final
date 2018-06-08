@@ -20,6 +20,8 @@ struct Light* new_light(float aR, float aG, float aB,
 	res->light_vector[0] = x;
 	res->light_vector[1] = y;
 	res->light_vector[2] = z;
+
+	res->intensity = 10;
 	
 	normalize(res->light_vector);
 	
@@ -104,6 +106,23 @@ struct Pixel* calc_specular(struct Light *l, float *normal, float *view,
 	res->r = l->point_color->r * sReflect * dot;
 	res->g = l->point_color->g * sReflect * dot;
 	res->b = l->point_color->b * sReflect * dot;
+	
+	return res;
+}
+
+struct Pixel* lambert_diffuse(struct Light *l, float *normal) {
+	struct Pixel *res = (struct Pixel *)malloc(sizeof(struct Pixel));
+	float dot = dot_product(normal, l->light_vector);
+	
+	//negative means its facing away from the light
+	if (dot < 0) {
+		res->r = res->g = res->b = 0;
+		return res;
+	}
+	
+	res->r = (l->point_color->r/255.0f) * .18/M_PI * 100 * dot*255;
+	res->g = (l->point_color->g/255.0f) * .18/M_PI * 100 * dot*255;
+	res->b = (l->point_color->b/255.0f) * .18/M_PI * 100 * dot*255;
 	
 	return res;
 }

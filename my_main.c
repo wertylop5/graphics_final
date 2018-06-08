@@ -157,12 +157,12 @@ void my_main() {
 	Frame f;
 	zbuffer z;
 	struct Pixel pixel;
-	float aReflect[3];
-	float dReflect[3];
-	float sReflect[3];
+	//float aReflect[3];
+	//float dReflect[3];
+	//float sReflect[3];
 	//float step = 15;
 	//float theta;
-	
+	/*
 	aReflect[RED] = 0.1;
 	aReflect[GREEN] = 0.1;
 	aReflect[BLUE] = 0.1;
@@ -174,7 +174,7 @@ void my_main() {
 	sReflect[RED] = 0.5;
 	sReflect[GREEN] = 0.5;
 	sReflect[BLUE] = 0.5;
-	
+	*/
 	clear(f, z);
 	pixel_color(&pixel, 0, 0, 0);
 		
@@ -183,7 +183,7 @@ void my_main() {
 	if (tot_frames == -1) tot_frames = 1;
 	for (cur_frame = 0; cur_frame < tot_frames; cur_frame++) {
 	s = new_rcs_stack(3);
-	l = new_light(67, 132, 75, 0, 255, 0, 1, 1, 1);
+	l = new_light(67, 132, 75, 0, 255, 0, 0, 0, 1);
 	polys = new_matrix(4, 1);
 	clear(f, z);
 	
@@ -369,9 +369,20 @@ void my_main() {
 							polys->m[2][cur_poly+2])) {
 						//plot_point(f, z, w, h, 0, &pixel);
 						
-						if (t > 0 && t > prim->t) {
+						if (t < prim->t) {
 							//printf("found intersect: %f at %d, %d\n", t, w, h);
-							plot_point(f, z, w, h, 0, &pixel);
+							//plot_point(f, z, w, h, 0, &pixel);
+							float normal[3];
+							find_norm(polys, cur_poly, cur_poly+1, cur_poly+2, normal);
+							//printf("normal: %f, %f, %f\n", normal[0], normal[1], normal[2]);
+							struct Pixel *color = lambert_diffuse(l, normal);
+							color->r = color->r > 255 ? 255 : color->r;
+							color->g = color->g > 255 ? 255 : color->g;
+							color->b = color->b > 255 ? 255 : color->b;
+							printf("color: %d, %d, %d\n", color->r, color->g, color->b);
+							//printf("color: %d, %d, %d\n", color->r, color->g, color->b);
+							plot_point(f, z, w, h, 0, color);
+							free(color);
 							prim->t = t;
 						}
 						

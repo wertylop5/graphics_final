@@ -37,6 +37,12 @@ char ray_triangle_intersect(
 		float x2, float y2, float z2,
 		float x3, float y3, float z3);
 
+void cast_ray();
+
+void reflection_ray();
+
+void refraction_ray();
+
 void free_ray(struct Ray *r);
 
 #endif

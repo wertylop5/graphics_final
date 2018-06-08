@@ -20,6 +20,8 @@
 struct Light {
 	struct Pixel *ambient_color;
 	struct Pixel *point_color;
+
+	float intensity;	//[0, MAX_INT]
 	
 	//location of the point light source
 	float light_vector[3];
@@ -36,6 +38,7 @@ struct Light* new_light(float aR, float aG, float aB,
 
 void free_light(struct Light *l);
 
+//phong reflection model
 //normal and view are 3 element arrays for the corresponding vector
 struct Pixel* get_lighting(struct Light *l, float *normal, float *view,
 		float aReflect, float dReflect, float sReflect);
@@ -44,6 +47,8 @@ struct Pixel* calc_ambient(struct Light *l, float aReflect);
 struct Pixel* calc_diffuse(struct Light *l, float *normal, float dReflect);
 struct Pixel* calc_specular(struct Light *l, float *normal, float *view,
 		float sReflect);
+
+struct Pixel* lambert_diffuse(struct Light *l, float *normal);
 
 #endif
 
