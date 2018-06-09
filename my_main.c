@@ -247,7 +247,7 @@ void my_main() {
 			for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
 				t = FLT_MAX;
 
-				/*
+				
 				printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n", 
 					polys->m[0][cur_poly],
 						polys->m[1][cur_poly],

@@ -92,7 +92,7 @@ void render(Frame f, struct Object **objs,
 		for (w = 0; w < IMG_WIDTH; w++) {//width loop
 			struct Ray *prim = new_primary_ray(w, h, M_PI/4);
 			float t;
-			int closest_poly = -1;
+			int closest_poly = -1, closest_obj = -1;
 
 			for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
 				struct Matrix *polys = objs[cur_obj]->polys;
@@ -129,6 +129,7 @@ void render(Frame f, struct Object **objs,
 						if (t < prim->t) {
 							prim->t = t;
 							closest_poly = cur_poly;
+							closest_obj = cur_obj;
 						}
 
 					}
@@ -140,7 +141,7 @@ void render(Frame f, struct Object **objs,
 				if (closest_poly > 0) {
 					//printf("final t: %f\n", prim->t);
 					float normal[3];
-					find_norm(polys, closest_poly, closest_poly+1,
+					find_norm(objs[closest_obj]->polys, closest_poly, closest_poly+1,
 							closest_poly+2, normal);
 
 					//light loop
