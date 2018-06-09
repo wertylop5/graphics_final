@@ -1,4 +1,25 @@
 #include"include/shapes.h"
+#include"include/lighting.h"
+
+struct Object *new_object(
+		struct Matrix *p,
+		float dR, float dG, float dB,
+		int behav) {
+	struct Object *res = (struct Object *)malloc(
+			sizeof(struct Object));
+	res->polys = copy_matrix(p);
+	res->diffuse_consts[RED] = dR;
+	res->diffuse_consts[GREEN] = dG;
+	res->diffuse_consts[BLUE] = dB;
+	res->behavior = behav;
+	
+	return res;
+}
+
+void free_object(struct Object *obj) {
+	free_matrix(obj->polys);
+	free(obj);
+}
 
 struct Matrix* scale(float a, float b, float c) {
 	struct Matrix *temp = new_matrix(4, 4);

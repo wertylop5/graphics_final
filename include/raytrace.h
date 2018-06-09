@@ -7,6 +7,9 @@
 #ifndef RAYTRACE_H
 #define RAYTRACE_H
 
+#include"draw.h"
+#include"shapes.h"
+
 struct Ray {
 	float origin[3];
 	float direction[3];
@@ -23,6 +26,11 @@ struct Ray {
 struct Ray* new_primary_ray(
 		int x, int y,
 		float fov);
+
+//renders scene using ray tracing
+void render(Frame f, struct Object **objs,
+		struct Light **lights,
+		int obj_count, int light_count);
 
 /*
 Uses the Moller-Trumbore algorithm

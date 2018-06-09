@@ -1,4 +1,4 @@
-OBJS = draw.o output.o matrix.o parser.o shapes.o rcs.o lighting.o vmath.o symtab.o print_pcode.o raytrace.o my_main.o
+OBJS = draw.o output.o matrix.o parser.o shapes.o rcs.o lighting.o vmath.o symtab.o print_pcode.o compiler.o raytrace.o my_main.o
 CC = gcc
 OUTPUT = picture.ppm *.gif
 EXEC = exec
@@ -25,6 +25,9 @@ symtab.o:
 
 print_pcode.o:
 	$(CC) $(DBG) -Wall -c compiler/print_pcode.c compiler/parser.h include/matrix.h
+
+compiler.o:
+	$(CC) $(DBG) -Wall -c compiler.c
 
 my_main.o:
 	$(CC) $(DBG) -Wall -c my_main.c

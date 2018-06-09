@@ -3,131 +3,15 @@
 #include <math.h>
 #include <string.h>
 
-#include "compiler/parser.h"
-
 #include "include/draw.h"
 #include "include/rcs.h"
 #include "include/shapes.h"
 #include "include/output.h"
 #include "include/raytrace.h"
+#include "include/compiler.h"
 
-#include "compiler/symtab.h"
-
+#include "compiler/parser.h"
 #include "y.tab.h"
-
-void pass_one(int *tot_frames, char *anim_name, int max_len) {
-	char vary_found = 0;
-	int x = 0;
-	while ( op[x].opcode != 0 ) {
-	switch(op[x].opcode) {
-		case FRAMES:
-			(*tot_frames) = op[x].op.frames.num_frames;
-			//printf("frames found: %d\n", *tot_frames);
-		break;
-		
-		case VARY:
-			vary_found = 1;
-			//printf("vary found\n");
-		break;
-		
-		case BASENAME:
-			strncpy(anim_name, op[x].op.basename.p->name,
-					max_len);
-			//printf("basename found: %s\n", anim_name);
-		break;
-	}
-	x++;
-	}
-	
-	if (vary_found && *tot_frames == -1) {
-		fprintf(stderr, "ERROR: vary command found, but number of frames not specified\n");
-		exit(1);
-	}
-}
-
-struct vary_node** pass_two(int tot_frames) {
-	struct vary_node **res = (struct vary_node **)malloc(
-		tot_frames * sizeof(struct vary_node *));
-	
-	//keep tracks of the tail of the linked lists
-	struct vary_node* tails[tot_frames];
-	memset(tails, 0, sizeof(tails));
-	
-	int x;
-	for (x = 0; x < tot_frames; x++) {
-		res[x] = 0;
-	}
-	
-	x = 0;
-	while ( op[x].opcode != 0 ) {
-	switch(op[x].opcode) {
-	case VARY:
-	{
-		char *knob = op[x].op.vary.p->name;
-		//printf("Accessing knob: %s, with len %lu\n", knob, strlen(knob));
-		
-		int cur_frame;
-		float cur;	//cuz frames are floats?
-		float step = (op[x].op.vary.end_val - op[x].op.vary.start_val) /
-			(op[x].op.vary.end_frame - op[x].op.vary.start_frame);
-		for (cur = op[x].op.vary.start_frame;
-				cur <= op[x].op.vary.end_frame;
-				cur++) {
-			cur_frame = (int)cur;
-			/*
-			 * If null, create a element and edit it directly.
-			 * 
-			 * If not null, create new element and 
-			 * have prev->next point to new element
-			 * */
-			if (res[cur_frame] == 0) {
-				res[cur_frame] = (struct vary_node *)malloc(sizeof(struct vary_node));
-				strncpy(res[cur_frame]->name, knob, strlen(knob));
-				res[cur_frame]->value = op[x].op.vary.start_val+
-					(step*(cur-op[x].op.vary.start_frame));
-				res[cur_frame]->next = 0;
-				tails[cur_frame] = res[cur_frame];
-			}
-			else {
-				struct vary_node *temp = (struct vary_node *)malloc(sizeof(struct vary_node));
-				strncpy(temp->name, knob, strlen(knob));
-				temp->value = op[x].op.vary.start_val+
-					(step*(cur-op[x].op.vary.start_frame));
-				temp->next = 0;
-				
-				tails[cur_frame]->next = temp;
-				tails[cur_frame] = temp;
-			}
-		}
-	}
-	break;
-	}
-	x++;
-	}
-	
-	x = 0;
-	for (; x < tot_frames; x++) {
-		//printf("Frame %d\n", x);
-		if (res[x] != 0) {
-			struct vary_node const * temp = res[x];
-			while (temp != 0) {
-				//printf("knob %s with value %f\n", temp->name, temp->value);
-				temp = temp->next;
-			}
-		}
-	}
-	
-	return res;
-}
-
-void process_knobs(struct vary_node **knobs, int cur_frame) {
-	struct vary_node *temp = knobs[cur_frame];
-	while (temp != 0) {
-		//printf("on knob: %s\n", temp->name);
-		set_value(lookup_symbol(temp->name), temp->value);
-		temp = temp->next;
-	}
-}
 
 /*
  * Restructured polygon additions:
@@ -137,6 +21,7 @@ void process_knobs(struct vary_node **knobs, int cur_frame) {
  * Then, new polygons are added to cummulative matrix.
  * */
 void my_main() {
+	//environment vars
 	int tot_frames = -1;	//if this still = -1, then user doesn't want animation
 	char anim_name[128];
 	strncpy(anim_name, "default", sizeof(anim_name));
@@ -148,11 +33,14 @@ void my_main() {
 		knobs = pass_two(tot_frames);
 	}
 	
-	//struct Matrix *m = new_matrix(4, 1000);
+	//globals
 	struct Rcs_stack *s;
 	struct Light *l;
 	struct Matrix *polys;
-	float view_vect[] = {0, 0, 1};
+	//float view_vect[] = {0, 0, 1};
+	struct Object *objs[100];
+	struct Light *lights[10];
+	int obj_count = 0, light_count = 0;
 	
 	Frame f;
 	zbuffer z;
@@ -181,9 +69,12 @@ void my_main() {
 	int cur_frame;
 	char frame_name[256];
 	if (tot_frames == -1) tot_frames = 1;
-	for (cur_frame = 0; cur_frame < tot_frames; cur_frame++) {
+	for (cur_frame = 0; cur_frame < tot_frames; cur_frame++) {//frame loop
+	obj_count = light_count = 0;
 	s = new_rcs_stack(3);
 	l = new_light(0, 0, 0, 0, 255, 0, 1, 0, 1);
+	lights[0] = new_light(0, 0, 0, 0, 255, 0, 1, 0, 1);
+	light_count++;
 	polys = new_matrix(4, 1);
 	clear(f, z);
 	
@@ -192,7 +83,7 @@ void my_main() {
 		process_knobs(knobs, cur_frame);
 	}
 	int x = 0;
-	while ( op[x].opcode != 0 ) {
+	while ( op[x].opcode != 0 ) {		//op loop
 	switch(op[x].opcode) {
 		case PUSH:
 			push_rcs(s);
@@ -274,7 +165,12 @@ void my_main() {
 			add_cube(p, temp[0], temp[1], temp[2],
 				temp2[0], temp2[1], temp2[2]);
 			matrix_mult(peek(s), p);
-			extend_polygons(polys, p);
+			objs[obj_count++] = new_object(
+				p,
+				1, 1, 1,
+				DIFFUSE_AND_GLOSSY);
+			//extend_polygons(polys, p);
+			
 			free_matrix(p);
 		break;
 		}
@@ -287,6 +183,10 @@ void my_main() {
 			add_sphere(p, temp[0], temp[1], temp[2],
 				op[x].op.sphere.r, 12);
 			matrix_mult(peek(s), p);
+			objs[obj_count++] = new_object(
+				p,
+				1, 1, 1,
+				DIFFUSE_AND_GLOSSY);
 			extend_polygons(polys, p);
 			free_matrix(p);
 		break;
@@ -302,6 +202,10 @@ void my_main() {
 				op[x].op.torus.r1,
 				15);
 			matrix_mult(peek(s), p);
+			objs[obj_count++] = new_object(
+				p,
+				1, 1, 1,
+				DIFFUSE_AND_GLOSSY);
 			extend_polygons(polys, p);
 			free_matrix(p);
 		break;
@@ -327,6 +231,9 @@ void my_main() {
 		break;
 		
 		case DISPLAY:
+			render(f, objs, lights,
+				obj_count, light_count);
+		/*
 			clear(f, z);
 			pixel_color(&pixel, 0, 255, 0);
 			printf("poly count: %d\n", polys->back);
@@ -353,7 +260,7 @@ void my_main() {
 						polys->m[2][cur_poly+2]
 						);
 				
-				*/
+				
 				if (ray_triangle_intersect(
 						prim,
 						&t,
@@ -392,12 +299,14 @@ void my_main() {
 			free_ray(prim);
 			}
 			}
-			draw_polygons(f, z, polys, &pixel, l, view_vect);
+			//draw_polygons(f, z, polys, &pixel, l, view_vect);
 			display(f);
+			*/
 		break;
+		
 		};
 	x++;
-	}
+	}//end op loop
 	if (tot_frames > 1) {
 		//save the frame
 		memset(frame_name, 0, sizeof(frame_name));
@@ -406,10 +315,10 @@ void my_main() {
 		save_png(f, frame_name);
 	}
 	
-	free_light(l);
+	//free_light(l);
 	free_stack(s);
-	free_matrix(polys);
-	}
+	//free_matrix(polys);
+	}//end frame loop
 	
 	if (tot_frames > 1) {
 		save_anim(anim_name, FRAME_DIR);

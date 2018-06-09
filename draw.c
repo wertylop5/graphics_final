@@ -20,6 +20,14 @@ void plot_point(Frame grid, zbuffer b, int x, int y, float z, struct Pixel *p) {
 	//grid[y][x] = *p;	//if top left is (0, 0)
 }
 
+void plot_point_trace(Frame grid, int x, int y, struct Pixel *p) {
+	//printf("Plotting %d, %d (%d, %d)\n", x, IMG_HEIGHT-1-y, x, y);
+	if (x > -1 && y > -1 && x < IMG_WIDTH && y < IMG_HEIGHT) {
+		grid[IMG_HEIGHT-1-y][x] = *p;
+	}
+	//grid[y][x] = *p;	//if top left is (0, 0)
+}
+
 void draw_lines(Frame grid, zbuffer b, struct Matrix *m, struct Pixel *p) {
 	int x;
 	for (x = 1; x < m->back; x+=2) {
@@ -294,5 +302,18 @@ void clear(Frame f, zbuffer b) {
 	for (y = 0; y < IMG_HEIGHT; y++)
 	for (x = 0; x < IMG_WIDTH; x++)
 		b[y][x] = -FLT_MAX;
+}
+
+void clear_frame(Frame f, char color) {
+	memset(f, color ? 255 : 0, sizeof(Frame));
+}
+
+void init_frame(Frame f, struct Pixel *p) {
+	int x, y;
+	for (x = 0; x < IMG_WIDTH; x++) {
+	for (y = 0; y < IMG_HEIGHT; y++) {
+		plot_point_trace(f, x, y, p);
+	}
+	}
 }
 

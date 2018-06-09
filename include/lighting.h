@@ -51,7 +51,5 @@ struct Pixel* calc_diffuse(struct Light *l, float *normal, float dReflect);
 struct Pixel* calc_specular(struct Light *l, float *normal, float *view,
 		float sReflect);
 
-struct Pixel* lambert_diffuse(struct Light *l, float *normal);
-
 #endif
 

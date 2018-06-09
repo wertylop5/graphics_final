@@ -32,6 +32,10 @@ typedef float zbuffer[IMG_HEIGHT][IMG_WIDTH];
 void plot_point(Frame grid, zbuffer b,
 		int x, int y, float z, struct Pixel *p);
 
+//same as plot_point, except used with ray tracing
+void plot_point_trace(Frame grid,
+		int x, int y, struct Pixel *p);
+
 //pixel is for custom colors
 void draw_line(Frame grid, zbuffer buf, struct Pixel *p,
 		int x1, int y1, float z1,
@@ -56,6 +60,13 @@ void render_scanlines(Frame f, zbuffer b, struct Matrix *m, struct Pixel *p,
 
 //sets Frame to all 0, zbuffer to -FLT_MAX
 void clear(Frame f, zbuffer b);
+
+//sets Frame to black or white
+//color = 0 for black, 1 for white
+void clear_frame(Frame f, char color);
+
+//sets Frame to specified color
+void init_frame(Frame f, struct Pixel *background);
 
 #endif
 

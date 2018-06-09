@@ -22,10 +22,18 @@
 
 struct Object {
 	struct Matrix *polys;
-	float diffuse_color[3];
-	int behavior;
-	float albedo;	//for lambert diffuse
+	float diffuse_consts[3];	//r, g, b
+	int behavior;	//use the above constants
 };
+
+//Note: the matrix passed into polys is copied
+//if it's too slow, I'll change it
+struct Object *new_object(
+		struct Matrix *p,
+		float dR, float dG, float dB,
+		int behav);
+
+void free_object(struct Object *obj);
 
 //returns transformation matrices
 struct Matrix* scale(float a, float b, float c);
