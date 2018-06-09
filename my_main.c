@@ -73,7 +73,7 @@ void my_main() {
 	obj_count = light_count = 0;
 	s = new_rcs_stack(3);
 	l = new_light(0, 0, 0, 0, 255, 0, 1, 0, 1);
-	lights[0] = new_light(0, 0, 0, 0, 255, 0, 1, 0, 1);
+	lights[0] = new_light(0, 90, 0, 0, 255, 0, 1, 0, 1);
 	light_count++;
 	polys = new_matrix(4, 1);
 	clear(f, z);
@@ -168,7 +168,7 @@ void my_main() {
 			objs[obj_count++] = new_object(
 				p,
 				1, 1, 1,
-				DIFFUSE_AND_GLOSSY);
+				AMBIENT);
 			//extend_polygons(polys, p);
 			
 			free_matrix(p);
@@ -233,75 +233,8 @@ void my_main() {
 		case DISPLAY:
 			render(f, objs, lights,
 				obj_count, light_count);
-		/*
-			clear(f, z);
-			pixel_color(&pixel, 0, 255, 0);
-			printf("poly count: %d\n", polys->back);
-			int w, h, cur_poly;
-			for (h = 0; h < IMG_HEIGHT; h++) {
-			for (w = 0; w < IMG_WIDTH; w++) {
-			struct Ray *prim = new_primary_ray(w, h, M_PI/4);
-			float t;
-			int closest_poly = -1;
 			
-			for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {
-				t = FLT_MAX;
-
-				
-				printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n", 
-					polys->m[0][cur_poly],
-						polys->m[1][cur_poly],
-						polys->m[2][cur_poly],
-						polys->m[0][cur_poly+1],
-						polys->m[1][cur_poly+1],
-						polys->m[2][cur_poly+1],
-						polys->m[0][cur_poly+2],
-						polys->m[1][cur_poly+2],
-						polys->m[2][cur_poly+2]
-						);
-				
-				
-				if (ray_triangle_intersect(
-						prim,
-						&t,
-						polys->m[0][cur_poly],
-						polys->m[1][cur_poly],
-						polys->m[2][cur_poly],
-						polys->m[0][cur_poly+1],
-						polys->m[1][cur_poly+1],
-						polys->m[2][cur_poly+1],
-						polys->m[0][cur_poly+2],
-						polys->m[1][cur_poly+2],
-						polys->m[2][cur_poly+2])) {
-					
-					if (t < prim->t) {
-						prim->t = t;
-						closest_poly = cur_poly;
-					}
-					
-				}
-				
-			}
-			
-			//display only the closest polygon
-			if (closest_poly > 0) {
-				//printf("final t: %f\n", prim->t);
-				float normal[3];
-				find_norm(polys, closest_poly, closest_poly+1,
-					closest_poly+2, normal);
-				
-				struct Pixel *color = get_lighting_matte(l, normal, .5, .5);
-				//printf("color: %d, %d, %d\n", color->r, color->g, color->b);
-				plot_point(f, z, w, h, 0, color);
-				free(color);
-			}
-			
-			free_ray(prim);
-			}
-			}
-			//draw_polygons(f, z, polys, &pixel, l, view_vect);
 			display(f);
-			*/
 		break;
 		
 		};
@@ -324,8 +257,4 @@ void my_main() {
 		save_anim(anim_name, FRAME_DIR);
 		view_anim(anim_name, FRAME_DIR);
 	}
-	
-	//free_light(l);
-	//free_stack(s);
-	//free_matrix(m);
 }

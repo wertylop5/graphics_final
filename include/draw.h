@@ -68,5 +68,14 @@ void clear_frame(Frame f, char color);
 //sets Frame to specified color
 void init_frame(Frame f, struct Pixel *background);
 
+void add_pixel(struct Pixel *out,
+		const struct Pixel *src);
+
+//colors is a 1D array of Pixel*
+//normals is a 2D array
+//lights is a 1D array of Light*
+void add_pixel(struct Pixel *sum,
+		const struct Pixel *other);
+
 #endif
 

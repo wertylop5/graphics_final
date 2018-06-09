@@ -85,83 +85,97 @@ void render(Frame f, struct Object **objs,
 	//printf("poly count: %d\n", );
 	printf("lights: %d, objs: %d\n", light_count, obj_count);
 
-	struct Pixel pixel;
-	pixel_color(&pixel, 0, 255, 0);
-	int w, h, cur_poly, cur_obj;
+	struct Pixel *pixel;
+	int w, h;
 	for (h = 0; h < IMG_HEIGHT; h++) {//height loop
 		for (w = 0; w < IMG_WIDTH; w++) {//width loop
-			struct Ray *prim = new_primary_ray(w, h, M_PI/4);
-			float t;
-			int closest_poly = -1, closest_obj = -1;
-
-			for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
-				struct Matrix *polys = objs[cur_obj]->polys;
-				for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {//poly loop
-					t = FLT_MAX;
-
-					/*
-					   printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n",
-					   polys->m[0][cur_poly],
-					   polys->m[1][cur_poly],
-					   polys->m[2][cur_poly],
-					   polys->m[0][cur_poly+1],
-					   polys->m[1][cur_poly+1],
-					   polys->m[2][cur_poly+1],
-					   polys->m[0][cur_poly+2],
-					   polys->m[1][cur_poly+2],
-					   polys->m[2][cur_poly+2]
-					   );
-
-*/
-					if (ray_triangle_intersect(
-							prim,
-							&t,
-							polys->m[0][cur_poly],
-							polys->m[1][cur_poly],
-							polys->m[2][cur_poly],
-							polys->m[0][cur_poly+1],
-							polys->m[1][cur_poly+1],
-							polys->m[2][cur_poly+1],
-							polys->m[0][cur_poly+2],
-							polys->m[1][cur_poly+2],
-							polys->m[2][cur_poly+2])) {
-
-						if (t < prim->t) {
-							prim->t = t;
-							closest_poly = cur_poly;
-							closest_obj = cur_obj;
-						}
-
-					}
-
-				}//end poly loop
-
-
-				//display only the closest polygon
-				if (closest_poly > 0) {
-					//printf("final t: %f\n", prim->t);
-					float normal[3];
-					find_norm(objs[closest_obj]->polys, closest_poly, closest_poly+1,
-							closest_poly+2, normal);
-
-					//light loop
-					int cur_light;
-					for (cur_light = 0; cur_light < light_count; cur_light++) {
-						struct Pixel *color = get_lighting_matte(lights[cur_light], normal, .5, .5);
-						//printf("color: %d, %d, %d\n", color->r, color->g, color->b);
-						plot_point_trace(f, w, h, color);
-						free(color);
-					}//end light loop
-				}
-
-			}//end obj loop
-
-			free_ray(prim);
+			pixel = cast_ray(w, h, objs, lights,
+				obj_count, light_count);
+			
+			plot_point_trace(f, w, h, pixel);
+			free(pixel);
 		}//end width loop
 	}//end height loop
+}
 
-	//draw_polygons(f, z, polys, &pixel, l, view_vect);
-	display(f);
+struct Pixel* cast_ray(int x, int y,
+		struct Object **objs,
+		struct Light **lights,
+		int obj_count, int light_count) {
+	struct Pixel *color = (struct Pixel *)malloc(sizeof(struct Pixel));
+	pixel_color(color, 0, 0, 0);
+	int cur_poly, cur_obj;
+	struct Ray *prim = new_primary_ray(x, y, M_PI/4);
+	float t;
+	int closest_poly = -1, closest_obj = -1;
+
+	for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
+		struct Matrix *polys = objs[cur_obj]->polys;
+		for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {//poly loop
+			t = FLT_MAX;
+
+			/*
+			   printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n",
+			   polys->m[0][cur_poly],
+			   polys->m[1][cur_poly],
+			   polys->m[2][cur_poly],
+			   polys->m[0][cur_poly+1],
+			   polys->m[1][cur_poly+1],
+			   polys->m[2][cur_poly+1],
+			   polys->m[0][cur_poly+2],
+			   polys->m[1][cur_poly+2],
+			   polys->m[2][cur_poly+2]
+			   );
+			*/
+			
+			if (ray_triangle_intersect(
+					prim,
+					&t,
+					polys->m[0][cur_poly],
+					polys->m[1][cur_poly],
+					polys->m[2][cur_poly],
+					polys->m[0][cur_poly+1],
+					polys->m[1][cur_poly+1],
+					polys->m[2][cur_poly+1],
+					polys->m[0][cur_poly+2],
+					polys->m[1][cur_poly+2],
+					polys->m[2][cur_poly+2])) {
+				
+				if (t < prim->t) {
+					prim->t = t;
+					closest_poly = cur_poly;
+					closest_obj = cur_obj;
+				}
+
+			}
+
+		}//end poly loop
+
+
+		//display only the closest polygon
+		if (closest_poly > 0) {
+			//printf("final t: %f\n", prim->t);
+			float normal[3];
+			find_norm(objs[closest_obj]->polys, closest_poly, closest_poly+1,
+					closest_poly+2, normal);
+
+			//light loop
+			int cur_light;
+			for (cur_light = 0; cur_light < light_count; cur_light++) {
+				struct Pixel *temp_color = get_lighting_matte(lights[cur_light], normal, .3, .5);
+				
+				add_pixel(color, temp_color);
+				
+				free(temp_color);
+				//printf("color: %d, %d, %d\n", color->r, color->g, color->b);
+				//plot_point_trace(f, w, h, color);
+			}//end light loop
+		}
+
+	}//end obj loop
+
+	free_ray(prim);
+	return color;
 }
 
 char ray_triangle_intersect(
@@ -228,6 +242,23 @@ char ray_triangle_intersect(
 	   x3, y3, z3);
 	   */
 	return 1;
+}
+
+char in_shadow(struct Ray *init, float bias,
+		struct Object **objs,
+		struct Light *light,
+		int obj_count, int light_count) {
+	float orig_x = (init->direction[0] - init->origin[0]) *
+		init->t;
+	float orig_y = (init->direction[1] - init->origin[1]) *
+		init->t;
+	float orig_z = (init->direction[2] - init->origin[2]) *
+		init->t;
+	struct Ray *shadow = new_ray(orig_x, orig_y, orig_z,
+			-light->light_vector[0],
+			-light->light_vector[1],
+			-light->light_vector[2]);
+	return 0;
 }
 
 void free_ray(struct Ray *r) {

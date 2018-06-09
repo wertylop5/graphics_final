@@ -62,6 +62,11 @@ struct Pixel* get_lighting_matte(struct Light *l, float *normal,
 	a->g = fminf(a->g + d->g, 255);
 	a->b = fminf(a->b + d->b, 255);
 	
+	//don't want negative either
+	a->r = fmaxf(a->r, 0);
+	a->g = fmaxf(a->g, 0);
+	a->b = fmaxf(a->b, 0);
+	
 	free(d);
 	
 	return a;

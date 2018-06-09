@@ -19,6 +19,7 @@
 #define DIFFUSE_AND_GLOSSY		0
 #define REFLECTION_AND_REFRACTION	1
 #define REFLECTION 			2
+#define AMBIENT				3
 
 struct Object {
 	struct Matrix *polys;
