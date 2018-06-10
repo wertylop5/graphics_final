@@ -73,7 +73,7 @@ void my_main() {
 	obj_count = light_count = 0;
 	s = new_rcs_stack(3);
 	l = new_light(0, 0, 0, 0, 255, 0, 1, 0, 1);
-	lights[0] = new_light(0, 90, 0, 0, 255, 0, 1, 0, 1);
+	lights[0] = new_light(0, 120, 0, 0, 255, 0, -1, 0, -1);
 	light_count++;
 	polys = new_matrix(4, 1);
 	clear(f, z);
@@ -168,7 +168,7 @@ void my_main() {
 			objs[obj_count++] = new_object(
 				p,
 				1, 1, 1,
-				AMBIENT);
+				AMBIENT_ONLY);
 			//extend_polygons(polys, p);
 			
 			free_matrix(p);

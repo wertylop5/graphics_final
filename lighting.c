@@ -17,9 +17,13 @@ struct Light* new_light(float aR, float aG, float aB,
 	res->point_color->g = pG;
 	res->point_color->b = pB;
 
-	res->light_vector[0] = x;
-	res->light_vector[1] = y;
-	res->light_vector[2] = z;
+	//I'm not sure why, but shadows don't work unless this is
+	//negated
+	//Ex: (-1, 0, -1) will have the light point in the direction
+	//of that coordinate
+	res->light_vector[0] = -x;
+	res->light_vector[1] = -y;
+	res->light_vector[2] = -z;
 
 	res->intensity = 10;
 	

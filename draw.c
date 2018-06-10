@@ -317,7 +317,7 @@ void init_frame(Frame f, struct Pixel *p) {
 	}
 }
 
-void add_pixels(struct Pixel *sum,
+void add_pixel(struct Pixel *sum,
 		const struct Pixel *other) {
 	sum->r += other->r;
 	sum->g += other->g;

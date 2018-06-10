@@ -16,10 +16,10 @@
 #define STEP	.01f
 
 //object's behavior under light
-#define DIFFUSE_AND_GLOSSY		0
+#define DIFFUSE_AND_GLOSSY			0
 #define REFLECTION_AND_REFRACTION	1
-#define REFLECTION 			2
-#define AMBIENT				3
+#define REFLECTION 					2
+#define AMBIENT_ONLY				3
 
 struct Object {
 	struct Matrix *polys;

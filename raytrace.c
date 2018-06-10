@@ -92,8 +92,10 @@ void render(Frame f, struct Object **objs,
 			pixel = cast_ray(w, h, objs, lights,
 				obj_count, light_count);
 			
-			plot_point_trace(f, w, h, pixel);
-			free(pixel);
+			if (pixel != 0) {
+				plot_point_trace(f, w, h, pixel);
+				free(pixel);
+			}
 		}//end width loop
 	}//end height loop
 }
@@ -102,8 +104,11 @@ struct Pixel* cast_ray(int x, int y,
 		struct Object **objs,
 		struct Light **lights,
 		int obj_count, int light_count) {
-	struct Pixel *color = (struct Pixel *)malloc(sizeof(struct Pixel));
-	pixel_color(color, 0, 0, 0);
+	//struct Pixel *color =
+		//(struct Pixel *)malloc(sizeof(struct Pixel));
+	struct Pixel *color = 0;
+	//pixel_color(color, 0, 0, 0);
+	
 	int cur_poly, cur_obj;
 	struct Ray *prim = new_primary_ray(x, y, M_PI/4);
 	float t;
@@ -111,21 +116,23 @@ struct Pixel* cast_ray(int x, int y,
 
 	for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
 		struct Matrix *polys = objs[cur_obj]->polys;
-		for (cur_poly = 0; cur_poly < polys->back; cur_poly+=3) {//poly loop
+		for (		cur_poly = 0;
+				cur_poly < polys->back;
+				cur_poly+=3) {//poly loop
 			t = FLT_MAX;
 
 			/*
-			   printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n",
-			   polys->m[0][cur_poly],
-			   polys->m[1][cur_poly],
-			   polys->m[2][cur_poly],
-			   polys->m[0][cur_poly+1],
-			   polys->m[1][cur_poly+1],
-			   polys->m[2][cur_poly+1],
-			   polys->m[0][cur_poly+2],
-			   polys->m[1][cur_poly+2],
-			   polys->m[2][cur_poly+2]
-			   );
+			printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n",
+			polys->m[0][cur_poly],
+			polys->m[1][cur_poly],
+			polys->m[2][cur_poly],
+			polys->m[0][cur_poly+1],
+			polys->m[1][cur_poly+1],
+			polys->m[2][cur_poly+1],
+			polys->m[0][cur_poly+2],
+			polys->m[1][cur_poly+2],
+			polys->m[2][cur_poly+2]
+			);
 			*/
 			
 			if (ray_triangle_intersect(
@@ -151,24 +158,44 @@ struct Pixel* cast_ray(int x, int y,
 
 		}//end poly loop
 
-
 		//display only the closest polygon
 		if (closest_poly > 0) {
+			color = (struct Pixel *)malloc(sizeof(struct Pixel));
+			pixel_color(color, 0, 0, 0);
 			//printf("final t: %f\n", prim->t);
 			float normal[3];
-			find_norm(objs[closest_obj]->polys, closest_poly, closest_poly+1,
+			find_norm(objs[closest_obj]->polys,
+					closest_poly, closest_poly+1,
 					closest_poly+2, normal);
 
 			//light loop
 			int cur_light;
-			for (cur_light = 0; cur_light < light_count; cur_light++) {
-				struct Pixel *temp_color = get_lighting_matte(lights[cur_light], normal, .3, .5);
+			for (		cur_light = 0;
+					cur_light < light_count;
+					cur_light++) {
+				if (in_shadow(prim, 0.0005f,
+						objs,
+						lights[cur_light],
+						closest_obj,
+						obj_count)) {
+					
+					struct Pixel *temp_color =
+							calc_ambient(lights[cur_light],
+							.3);
+					free_ray(prim);
+					return temp_color;
+				}
+				struct Pixel *temp_color =
+					get_lighting_matte(
+						lights[cur_light],
+						normal, .3, .5);
 				
 				add_pixel(color, temp_color);
 				
 				free(temp_color);
-				//printf("color: %d, %d, %d\n", color->r, color->g, color->b);
-				//plot_point_trace(f, w, h, color);
+				//printf("color: %d, %d, %d\n",
+					//color->r, color->g,
+					//color->b);
 			}//end light loop
 		}
 
@@ -247,17 +274,53 @@ char ray_triangle_intersect(
 char in_shadow(struct Ray *init, float bias,
 		struct Object **objs,
 		struct Light *light,
-		int obj_count, int light_count) {
-	float orig_x = (init->direction[0] - init->origin[0]) *
-		init->t;
-	float orig_y = (init->direction[1] - init->origin[1]) *
-		init->t;
-	float orig_z = (init->direction[2] - init->origin[2]) *
-		init->t;
-	struct Ray *shadow = new_ray(orig_x, orig_y, orig_z,
-			-light->light_vector[0],
-			-light->light_vector[1],
-			-light->light_vector[2]);
+		int hit_obj,
+		int obj_count) {
+	
+	struct Ray shadow;
+	float t;
+	int cur_obj, cur_poly;
+	for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
+		//ignore the obj the point is on
+		//if (cur_obj == hit_obj) continue;
+	for (	cur_poly = 0;
+			cur_poly < objs[cur_obj]->polys->back;
+			cur_poly+=3) {//poly loop
+		float norm[3];
+		find_norm(objs[cur_obj]->polys,
+				cur_poly, cur_poly+1, cur_poly+2,
+				norm);
+		shadow.origin[0] =
+				init->direction[0]*init->t +
+				init->origin[0] + norm[0]*bias;
+		shadow.origin[1] =
+				init->direction[1]*init->t +
+				init->origin[1] + norm[1]*bias;
+		shadow.origin[2] =
+				init->direction[2]*init->t +
+				init->origin[2] + norm[2]*bias;
+		
+		//it works if I don't negate it?
+		shadow.direction[0] = light->light_vector[0];
+		shadow.direction[1] = light->light_vector[1];
+		shadow.direction[2] = light->light_vector[2];
+		
+		if (ray_triangle_intersect(&shadow,
+			&t,
+			objs[cur_obj]->polys->m[0][cur_poly],
+			objs[cur_obj]->polys->m[1][cur_poly],
+			objs[cur_obj]->polys->m[2][cur_poly],
+			objs[cur_obj]->polys->m[0][cur_poly+1],
+			objs[cur_obj]->polys->m[1][cur_poly+1],
+			objs[cur_obj]->polys->m[2][cur_poly+1],
+			objs[cur_obj]->polys->m[0][cur_poly+2],
+			objs[cur_obj]->polys->m[1][cur_poly+2],
+			objs[cur_obj]->polys->m[2][cur_poly+2])) {
+			return 1;
+		}
+	}//end poly loop
+	}//end obj loop
+	
 	return 0;
 }
 

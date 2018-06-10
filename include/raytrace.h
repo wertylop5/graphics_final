@@ -61,10 +61,12 @@ struct Ray* new_reflection_ray(struct Ray *init);
 struct Ray* new_refraction_ray(struct Ray *init);
 
 //tests if the point hit by a ray is in the shadow of an object
+//skip the object on which the point is on
 char in_shadow(struct Ray *init, float bias,
 		struct Object **objs,
 		struct Light *light,
-		int obj_count, int light_count);
+		int hit_obj,
+		int obj_count);
 
 void free_ray(struct Ray *r);
 
