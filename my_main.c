@@ -9,17 +9,11 @@
 #include "include/output.h"
 #include "include/raytrace.h"
 #include "include/compiler.h"
+#include "include/uthash.h"
 
 #include "compiler/parser.h"
 #include "y.tab.h"
 
-/*
- * Restructured polygon additions:
- *
- * New polygons will be added to a temporary matrix.
- * Transformations are applied to the temp matrix.
- * Then, new polygons are added to cummulative matrix.
- * */
 void my_main() {
 	//environment vars
 	int tot_frames = -1;	//if this still = -1, then user doesn't want animation
@@ -35,8 +29,6 @@ void my_main() {
 	
 	//globals
 	struct Rcs_stack *s;
-	struct Light *l;
-	struct Matrix *polys;
 	//float view_vect[] = {0, 0, 1};
 	struct Object *objs[100];
 	struct Light *lights[10];
@@ -72,10 +64,8 @@ void my_main() {
 	for (cur_frame = 0; cur_frame < tot_frames; cur_frame++) {//frame loop
 	obj_count = light_count = 0;
 	s = new_rcs_stack(3);
-	l = new_light(0, 0, 0, 0, 255, 0, 1, 0, 1);
 	lights[0] = new_light(0, 120, 0, 0, 255, 0, -1, 0, -1);
 	light_count++;
-	polys = new_matrix(4, 1);
 	clear(f, z);
 	
 	//printf("frame %d\n", cur_frame);
@@ -169,7 +159,6 @@ void my_main() {
 				p,
 				1, 1, 1,
 				AMBIENT_ONLY);
-			//extend_polygons(polys, p);
 			
 			free_matrix(p);
 		break;
@@ -187,7 +176,7 @@ void my_main() {
 				p,
 				1, 1, 1,
 				DIFFUSE_AND_GLOSSY);
-			extend_polygons(polys, p);
+			
 			free_matrix(p);
 		break;
 		}
@@ -206,7 +195,7 @@ void my_main() {
 				p,
 				1, 1, 1,
 				DIFFUSE_AND_GLOSSY);
-			extend_polygons(polys, p);
+			
 			free_matrix(p);
 		break;
 		}
@@ -248,9 +237,18 @@ void my_main() {
 		save_png(f, frame_name);
 	}
 	
-	//free_light(l);
+	int temp_counter;
+	for (temp_counter = 0; temp_counter < light_count;
+					temp_counter++) {
+			if (lights[temp_counter] == 0) break;
+			free_light(lights[temp_counter]);
+	}
 	free_stack(s);
-	//free_matrix(polys);
+	for (temp_counter = 0; temp_counter < obj_count;
+					temp_counter++) {
+			if (objs[temp_counter] == 0) break;
+			free_object(objs[temp_counter]);
+	}
 	}//end frame loop
 	
 	if (tot_frames > 1) {

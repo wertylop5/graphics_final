@@ -106,7 +106,7 @@ struct Pixel* cast_ray(int x, int y,
 		int obj_count, int light_count) {
 	//struct Pixel *color =
 		//(struct Pixel *)malloc(sizeof(struct Pixel));
-	struct Pixel *color = 0;
+	struct Pixel *color;
 	//pixel_color(color, 0, 0, 0);
 	
 	int cur_poly, cur_obj;
@@ -170,9 +170,10 @@ struct Pixel* cast_ray(int x, int y,
 
 			//light loop
 			int cur_light;
-			for (		cur_light = 0;
+			for (	cur_light = 0;
 					cur_light < light_count;
 					cur_light++) {
+				//if in shadow, use only ambient light
 				if (in_shadow(prim, 0.0005f,
 						objs,
 						lights[cur_light],
@@ -182,6 +183,7 @@ struct Pixel* cast_ray(int x, int y,
 					struct Pixel *temp_color =
 							calc_ambient(lights[cur_light],
 							.3);
+					free(color);
 					free_ray(prim);
 					return temp_color;
 				}

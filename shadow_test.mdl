@@ -9,5 +9,5 @@ torus 0 -3 -6 .5 2
 pop
 //box -2 -2 0 5, 1, 4
 display
-save test.png
+save shadow_test.png
 
