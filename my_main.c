@@ -14,6 +14,7 @@
 #include "compiler/parser.h"
 #include "y.tab.h"
 
+//must define this first
 struct Options options;
 
 void my_main() {

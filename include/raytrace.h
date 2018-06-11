@@ -10,10 +10,11 @@
 #include"draw.h"
 #include"shapes.h"
 
+//renders image(s) using these parameters
 struct Options {
-	float fov;
+	float fov;		//field of view
 	int recursion_depth;
-	float bias;
+	float bias;		//for shadow rays
 	float camera_origin[3];
 	int bkgd_color[3];	//background color
 };
@@ -61,7 +62,8 @@ struct Pixel* cast_ray(int x, int y,
 		struct Light **lights,
 		int obj_count, int light_count);
 
-struct Ray* new_reflection_ray(struct Ray *init);
+struct Ray* new_reflection_ray(
+		struct Ray *init);
 
 struct Ray* new_refraction_ray(struct Ray *init);
 
