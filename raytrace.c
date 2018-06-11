@@ -86,6 +86,8 @@ struct Ray* new_reflection_ray(
 		float *norm) {
 	struct Ray *res = (struct Ray *)malloc(sizeof(struct Ray));
 	
+	//the reflected ray starts where the original ray hit
+	//the object
 	res->origin[0] =
 		init->direction[0]*init->t +
 		init->origin[0] + norm[0]*options.bias;
@@ -97,6 +99,7 @@ struct Ray* new_reflection_ray(
 		init->origin[2] + norm[2]*options.bias;
 	
 
+	//compute reflected ray direction
 	float dot = dot_product(init->direction, norm);
 	res->direction[0] =
 		init->direction[0] - 
@@ -232,13 +235,12 @@ struct Pixel *trace(struct Ray *ray,
 			switch(objs[closest_obj]->behavior) {
 			case DIFFUSE_AND_GLOSSY:
 			{
-				//if (depth_count == 1)
-					//printf("depth is one\n");
 				if (in_shadow(ray, options.bias,
 						objs,
 						lights[cur_light],
 						obj_count)) {
 					
+					//only use ambient light
 					struct Pixel *temp_color =
 						calc_ambient(
 						lights[cur_light],
@@ -257,24 +259,6 @@ struct Pixel *trace(struct Ray *ray,
 				
 				free(temp_color);
 				temp_color = 0;
-				
-				/*
-				if (color == 0) {
-					color = 
-					get_lighting_matte(
-						lights[cur_light],
-						normal, .3, .5);
-				}
-				else {
-				struct Pixel *temp_color =
-					get_lighting_matte(
-						lights[cur_light],
-						normal, .3, .5);
-				
-				add_pixel(color, temp_color);
-				free(temp_color);
-				}
-				*/
 			}
 			break;
 			case REFLECTION:
@@ -290,21 +274,73 @@ struct Pixel *trace(struct Ray *ray,
 						light_count,
 						depth_count-1);
 				
+				//if the reflected ray(s)
+				//hit something
 				if (temp_color != 0) {
-					printf("reflect color\n");
 					add_pixel(color, temp_color);
-					printf("%d,%d,%d color\n",
-						color->r,
-						color->g,
-						color->b);
 					free(temp_color);
 					temp_color = 0;
 				}
 				else{
+				//use background color, aka
+				//return null
 				if (color != 0) {
 					free(color);
 					color = 0;
 				}
+				}
+			}
+			break;
+			case PLANE:
+			{
+				if (in_shadow(ray, options.bias,
+						objs,
+						lights[cur_light],
+						obj_count)) {
+					//use a special "dark" color
+					pixel_color(color,
+						60, 60, 60);
+					free_ray(ray);
+					return color;
+				}
+				
+				//display planes in gray
+				pixel_color(color,
+					127, 127, 127);
+				
+				struct Ray *reflect =
+					new_reflection_ray(
+					ray, normal);
+				
+				struct Pixel *temp_color = 
+					trace(reflect,
+						objs, lights,
+						obj_count,
+						light_count,
+						depth_count-1);
+				
+				//if the reflected ray(s)
+				//hit something
+				if (temp_color != 0) {
+					/*
+					printf("%d,%d,%d temp\n",
+						temp_color->r,
+						temp_color->g,
+						temp_color->b);
+					printf("%d,%d,%d colorb\n",
+						color->r,
+						color->g,
+						color->b);
+					*/
+					add_pixel(color, temp_color);
+					free(temp_color);
+					temp_color = 0;
+					/*
+					printf("%d,%d,%d colora\n",
+						color->r,
+						color->g,
+						color->b);
+					*/
 				}
 			}
 			break;
@@ -315,16 +351,6 @@ struct Pixel *trace(struct Ray *ray,
 	}//end obj loop
 
 	free_ray(ray);
-	if (closest_obj >0&&
-			objs[closest_obj]->behavior == REFLECTION) {
-	printf("at end\n");
-	if (color != 0) {
-		printf("%d,%d,%d finalcolor\n",
-			color->r,
-			color->g,
-			color->b);
-	}
-	}
 	return color;
 }
 

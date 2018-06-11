@@ -319,9 +319,28 @@ void init_frame(Frame f, struct Pixel *p) {
 
 void add_pixel(struct Pixel *sum,
 		const struct Pixel *other) {
-	sum->r += other->r;
-	sum->g += other->g;
-	sum->b += other->b;
+	//cuz r, g, b in Pixel are unsigned char lmao
+	if (other->r > 255 - sum->r) {
+		sum->r = 255;
+	}
+	else {
+		sum->r += other->r;
+	}
+	
+	if (other->g > 255 - sum->g) {
+		sum->g = 255;
+	}
+	else {
+		sum->g += other->g;
+	}
+	
+	if (other->b > 255 - sum->b) {
+		sum->b = 255;
+	}
+	else {
+		sum->b += other->b;
+	}
+	
 }
 
 

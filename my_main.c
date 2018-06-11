@@ -154,7 +154,7 @@ void my_main() {
 			objs[obj_count++] = new_object(
 				p,
 				1, 1, 1,
-				AMBIENT_ONLY);
+				PLANE);
 			
 			free_matrix(p);
 		break;

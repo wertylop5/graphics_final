@@ -20,6 +20,7 @@
 #define REFLECTION_AND_REFRACTION	1
 #define REFLECTION 			2
 #define AMBIENT_ONLY			3
+#define PLANE				4
 
 struct Object {
 	struct Matrix *polys;

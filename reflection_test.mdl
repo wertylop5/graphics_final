@@ -7,5 +7,5 @@ torus -2 -3 -4 .5 2
 pop
 box -4 -2 5 10 1 12
 display
-save test.png
+save reflection_test.png
 
