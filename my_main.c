@@ -38,7 +38,7 @@ void my_main() {
 	int obj_count = 0, light_count = 0;
 
 	options.fov = M_PI/4;
-	options.recursion_depth = 1;
+	options.recursion_depth = 2;
 	options.bias = 0.0005f;
 	options.camera_origin[0] = 0.0f;
 	options.camera_origin[1] = 0.0f;
@@ -190,7 +190,7 @@ void my_main() {
 			objs[obj_count++] = new_object(
 				p,
 				1, 1, 1,
-				DIFFUSE_AND_GLOSSY);
+				REFLECTION);
 			
 			free_matrix(p);
 		break;

@@ -1,13 +1,10 @@
 push
 move -1 0 -8
-//sphere 0 2 -10 2
 sphere 3 0 -4 2
-//sphere -1 1 -6 2
 push
 rotate x 45
-torus 0 -3 -6 .5 2
+torus -2 -3 -4 .5 2
 pop
-//box -2 -2 0 5, 1, 4
 display
 save test.png
 

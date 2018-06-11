@@ -95,14 +95,19 @@ struct Ray* new_reflection_ray(
 	res->origin[2] =
 		init->direction[2]*init->t +
 		init->origin[2] + norm[2]*options.bias;
+	
 
 	float dot = dot_product(init->direction, norm);
-	res->direction[0] = init->direction[0] - 
+	res->direction[0] =
+		init->direction[0] - 
 		2*dot*norm[0];
-	res->direction[1] = init->direction[1] - 
+	res->direction[1] = 
+		init->direction[1] - 
 		2*dot*norm[1];
-	res->direction[2] = init->direction[2] - 
+	res->direction[2] = 
+		init->direction[2] - 
 		2*dot*norm[2];
+	normalize(res->direction);
 
 	res->t = FLT_MAX;
 	
@@ -156,6 +161,10 @@ struct Pixel *trace(struct Ray *ray,
 		struct Light **lights,
 		int obj_count, int light_count,
 		int depth_count) {
+	if (depth_count <= 0) {
+		return 0;
+	}
+	
 	struct Pixel *color = 0;
 	int cur_poly, cur_obj;
 	float t;
@@ -220,8 +229,11 @@ struct Pixel *trace(struct Ray *ray,
 			cur_light < light_count;
 			cur_light++) {//light loop
 			//if in shadow, use only ambient light
-			switch(objs[cur_obj]->behavior) {
+			switch(objs[closest_obj]->behavior) {
 			case DIFFUSE_AND_GLOSSY:
+			{
+				//if (depth_count == 1)
+					//printf("depth is one\n");
 				if (in_shadow(ray, options.bias,
 						objs,
 						lights[cur_light],
@@ -235,6 +247,7 @@ struct Pixel *trace(struct Ray *ray,
 					free_ray(ray);
 					return temp_color;
 				}
+				
 				struct Pixel *temp_color =
 					get_lighting_matte(
 						lights[cur_light],
@@ -243,9 +256,57 @@ struct Pixel *trace(struct Ray *ray,
 				add_pixel(color, temp_color);
 				
 				free(temp_color);
+				temp_color = 0;
+				
+				/*
+				if (color == 0) {
+					color = 
+					get_lighting_matte(
+						lights[cur_light],
+						normal, .3, .5);
+				}
+				else {
+				struct Pixel *temp_color =
+					get_lighting_matte(
+						lights[cur_light],
+						normal, .3, .5);
+				
+				add_pixel(color, temp_color);
+				free(temp_color);
+				}
+				*/
+			}
 			break;
 			case REFLECTION:
+			{
+				struct Ray *reflect =
+					new_reflection_ray(
+					ray, normal);
 				
+				struct Pixel *temp_color = 
+					trace(reflect,
+						objs, lights,
+						obj_count,
+						light_count,
+						depth_count-1);
+				
+				if (temp_color != 0) {
+					printf("reflect color\n");
+					add_pixel(color, temp_color);
+					printf("%d,%d,%d color\n",
+						color->r,
+						color->g,
+						color->b);
+					free(temp_color);
+					temp_color = 0;
+				}
+				else{
+				if (color != 0) {
+					free(color);
+					color = 0;
+				}
+				}
+			}
 			break;
 			}//end obj behavior switch
 		}//end light loop
@@ -254,6 +315,16 @@ struct Pixel *trace(struct Ray *ray,
 	}//end obj loop
 
 	free_ray(ray);
+	if (closest_obj >0&&
+			objs[closest_obj]->behavior == REFLECTION) {
+	printf("at end\n");
+	if (color != 0) {
+		printf("%d,%d,%d finalcolor\n",
+			color->r,
+			color->g,
+			color->b);
+	}
+	}
 	return color;
 }
 
