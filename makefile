@@ -33,7 +33,7 @@ my_main.o:
 	$(CC) $(DBG) -Wall -c my_main.c
 
 main.o:
-	$(CC) $(DBG) -Wall -c main.c include/draw.h include/output.h include/rcs.h
+	$(CC) $(DBG) -Wall -c main.c include/draw.h include/output.h include/rcs.h include/raytrace.h
 
 draw.o:
 	$(CC) $(DBG) -Wall -c draw.c include/draw.h

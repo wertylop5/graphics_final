@@ -33,7 +33,10 @@ struct Ray* new_primary_ray(
 			-1.0f);
 
 	struct Matrix *temp_origin = new_matrix(4, 1);
-	push_point(temp_origin, 0, 0, 0);
+	push_point(temp_origin,
+		options.camera_origin[0],
+		options.camera_origin[1],
+		options.camera_origin[2]);
 
 	//now use the camera-to-world matrix
 	//we will use the default position, so
@@ -81,7 +84,14 @@ struct Ray* new_primary_ray(
 void render(Frame f, struct Object **objs,
 		struct Light **lights,
 		int obj_count, int light_count) {
-	clear_frame(f, 1);
+	struct Pixel bkgd_pixel;
+	pixel_color(&bkgd_pixel,
+		options.bkgd_color[RED],
+		options.bkgd_color[GREEN],
+		options.bkgd_color[BLUE]);
+	init_frame(f, &bkgd_pixel);
+	
+	//clear_frame(f, 1);
 	//printf("poly count: %d\n", );
 	printf("lights: %d, objs: %d\n", light_count, obj_count);
 
@@ -106,11 +116,11 @@ struct Pixel* cast_ray(int x, int y,
 		int obj_count, int light_count) {
 	//struct Pixel *color =
 		//(struct Pixel *)malloc(sizeof(struct Pixel));
-	struct Pixel *color;
+	struct Pixel *color = 0;
 	//pixel_color(color, 0, 0, 0);
 	
 	int cur_poly, cur_obj;
-	struct Ray *prim = new_primary_ray(x, y, M_PI/4);
+	struct Ray *prim = new_primary_ray(x, y, options.fov);
 	float t;
 	int closest_poly = -1, closest_obj = -1;
 
@@ -174,10 +184,9 @@ struct Pixel* cast_ray(int x, int y,
 					cur_light < light_count;
 					cur_light++) {
 				//if in shadow, use only ambient light
-				if (in_shadow(prim, 0.0005f,
+				if (in_shadow(prim, options.bias,
 						objs,
 						lights[cur_light],
-						closest_obj,
 						obj_count)) {
 					
 					struct Pixel *temp_color =
@@ -276,15 +285,12 @@ char ray_triangle_intersect(
 char in_shadow(struct Ray *init, float bias,
 		struct Object **objs,
 		struct Light *light,
-		int hit_obj,
 		int obj_count) {
 	
 	struct Ray shadow;
 	float t;
 	int cur_obj, cur_poly;
 	for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
-		//ignore the obj the point is on
-		//if (cur_obj == hit_obj) continue;
 	for (	cur_poly = 0;
 			cur_poly < objs[cur_obj]->polys->back;
 			cur_poly+=3) {//poly loop
@@ -292,6 +298,9 @@ char in_shadow(struct Ray *init, float bias,
 		find_norm(objs[cur_obj]->polys,
 				cur_poly, cur_poly+1, cur_poly+2,
 				norm);
+		
+		//bias is used to avoid self-intersection due to
+		//rounding errors
 		shadow.origin[0] =
 				init->direction[0]*init->t +
 				init->origin[0] + norm[0]*bias;

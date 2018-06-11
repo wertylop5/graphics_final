@@ -14,6 +14,8 @@
 #include "compiler/parser.h"
 #include "y.tab.h"
 
+struct Options options;
+
 void my_main() {
 	//environment vars
 	int tot_frames = -1;	//if this still = -1, then user doesn't want animation
@@ -33,28 +35,21 @@ void my_main() {
 	struct Object *objs[100];
 	struct Light *lights[10];
 	int obj_count = 0, light_count = 0;
+
+	options.fov = M_PI/4;
+	options.recursion_depth = 1;
+	options.bias = 0.0005f;
+	options.camera_origin[0] = 0.0f;
+	options.camera_origin[1] = 0.0f;
+	options.camera_origin[2] = 0.0f;
+	options.bkgd_color[RED] = 100;
+	options.bkgd_color[GREEN] = 139;
+	options.bkgd_color[BLUE] = 237;
 	
 	Frame f;
 	zbuffer z;
 	struct Pixel pixel;
-	//float aReflect[3];
-	//float dReflect[3];
-	//float sReflect[3];
 	//float step = 15;
-	//float theta;
-	/*
-	aReflect[RED] = 0.1;
-	aReflect[GREEN] = 0.1;
-	aReflect[BLUE] = 0.1;
-
-	dReflect[RED] = 0.5;
-	dReflect[GREEN] = 0.5;
-	dReflect[BLUE] = 0.5;
-
-	sReflect[RED] = 0.5;
-	sReflect[GREEN] = 0.5;
-	sReflect[BLUE] = 0.5;
-	*/
 	clear(f, z);
 	pixel_color(&pixel, 0, 0, 0);
 		

@@ -10,6 +10,16 @@
 #include"draw.h"
 #include"shapes.h"
 
+struct Options {
+	float fov;
+	int recursion_depth;
+	float bias;
+	float camera_origin[3];
+	int bkgd_color[3];	//background color
+};
+
+extern struct Options options;
+
 struct Ray {
 	float origin[3];
 	float direction[3];
@@ -26,11 +36,6 @@ struct Ray {
 struct Ray* new_primary_ray(
 		int x, int y,
 		float fov);
-
-//input origin and direction
-struct Ray *new_ray(
-		float orig_x, float orig_y, float orig_z,
-		float d_x, float d_y, float d_z);
 
 //renders scene using ray tracing
 void render(Frame f, struct Object **objs,
@@ -61,11 +66,9 @@ struct Ray* new_reflection_ray(struct Ray *init);
 struct Ray* new_refraction_ray(struct Ray *init);
 
 //tests if the point hit by a ray is in the shadow of an object
-//skip the object on which the point is on
 char in_shadow(struct Ray *init, float bias,
 		struct Object **objs,
 		struct Light *light,
-		int hit_obj,
 		int obj_count);
 
 void free_ray(struct Ray *r);
