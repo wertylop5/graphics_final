@@ -38,6 +38,12 @@ struct Ray* new_primary_ray(
 		int x, int y,
 		float fov);
 
+struct Ray* new_reflection_ray(
+		struct Ray *init,
+		float *norm);
+
+struct Ray* new_refraction_ray(struct Ray *init);
+
 //renders scene using ray tracing
 void render(Frame f, struct Object **objs,
 		struct Light **lights,
@@ -57,15 +63,20 @@ char ray_triangle_intersect(
 		float x3, float y3, float z3);
 
 //returns the color at a pixel
+//stops if depth_count == 0
 struct Pixel* cast_ray(int x, int y,
 		struct Object **objs,
 		struct Light **lights,
-		int obj_count, int light_count);
+		int obj_count, int light_count,
+		int depth_count);
 
-struct Ray* new_reflection_ray(
-		struct Ray *init);
-
-struct Ray* new_refraction_ray(struct Ray *init);
+//recursive helper for cast_ray
+//Will handle the ray tracing itself
+struct Pixel *trace(struct Ray *ray,
+		struct Object **objs,
+		struct Light **lights,
+		int obj_count, int light_count,
+		int depth_count);
 
 //tests if the point hit by a ray is in the shadow of an object
 char in_shadow(struct Ray *init, float bias,

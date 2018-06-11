@@ -81,6 +81,34 @@ struct Ray* new_primary_ray(
 	return res;
 }
 
+struct Ray* new_reflection_ray(
+		struct Ray *init,
+		float *norm) {
+	struct Ray *res = (struct Ray *)malloc(sizeof(struct Ray));
+	
+	res->origin[0] =
+		init->direction[0]*init->t +
+		init->origin[0] + norm[0]*options.bias;
+	res->origin[1] =
+		init->direction[1]*init->t +
+		init->origin[1] + norm[1]*options.bias;
+	res->origin[2] =
+		init->direction[2]*init->t +
+		init->origin[2] + norm[2]*options.bias;
+
+	float dot = dot_product(init->direction, norm);
+	res->direction[0] = init->direction[0] - 
+		2*dot*norm[0];
+	res->direction[1] = init->direction[1] - 
+		2*dot*norm[1];
+	res->direction[2] = init->direction[2] - 
+		2*dot*norm[2];
+
+	res->t = FLT_MAX;
+	
+	return res;
+}
+
 void render(Frame f, struct Object **objs,
 		struct Light **lights,
 		int obj_count, int light_count) {
@@ -100,7 +128,8 @@ void render(Frame f, struct Object **objs,
 	for (h = 0; h < IMG_HEIGHT; h++) {//height loop
 		for (w = 0; w < IMG_WIDTH; w++) {//width loop
 			pixel = cast_ray(w, h, objs, lights,
-				obj_count, light_count);
+				obj_count, light_count,
+				options.recursion_depth);
 			
 			if (pixel != 0) {
 				plot_point_trace(f, w, h, pixel);
@@ -113,14 +142,22 @@ void render(Frame f, struct Object **objs,
 struct Pixel* cast_ray(int x, int y,
 		struct Object **objs,
 		struct Light **lights,
-		int obj_count, int light_count) {
-	//struct Pixel *color =
-		//(struct Pixel *)malloc(sizeof(struct Pixel));
-	struct Pixel *color = 0;
-	//pixel_color(color, 0, 0, 0);
-	
-	int cur_poly, cur_obj;
+		int obj_count, int light_count,
+		int depth_count) {
+	//struct Pixel *color = 0;
 	struct Ray *prim = new_primary_ray(x, y, options.fov);
+	
+	return trace(prim, objs, lights, obj_count, light_count,
+			depth_count);
+}
+
+struct Pixel *trace(struct Ray *ray,
+		struct Object **objs,
+		struct Light **lights,
+		int obj_count, int light_count,
+		int depth_count) {
+	struct Pixel *color = 0;
+	int cur_poly, cur_obj;
 	float t;
 	int closest_poly = -1, closest_obj = -1;
 
@@ -146,7 +183,7 @@ struct Pixel* cast_ray(int x, int y,
 			*/
 			
 			if (ray_triangle_intersect(
-					prim,
+					ray,
 					&t,
 					polys->m[0][cur_poly],
 					polys->m[1][cur_poly],
@@ -158,8 +195,8 @@ struct Pixel* cast_ray(int x, int y,
 					polys->m[1][cur_poly+2],
 					polys->m[2][cur_poly+2])) {
 				
-				if (t < prim->t) {
-					prim->t = t;
+				if (t < ray->t) {
+					ray->t = t;
 					closest_poly = cur_poly;
 					closest_obj = cur_obj;
 				}
@@ -170,30 +207,32 @@ struct Pixel* cast_ray(int x, int y,
 
 		//display only the closest polygon
 		if (closest_poly > 0) {
-			color = (struct Pixel *)malloc(sizeof(struct Pixel));
-			pixel_color(color, 0, 0, 0);
-			//printf("final t: %f\n", prim->t);
-			float normal[3];
-			find_norm(objs[closest_obj]->polys,
-					closest_poly, closest_poly+1,
-					closest_poly+2, normal);
+		color = (struct Pixel *)malloc(sizeof(struct Pixel));
+		pixel_color(color, 0, 0, 0);
+		//printf("final t: %f\n", prim->t);
+		float normal[3];
+		find_norm(objs[closest_obj]->polys,
+			closest_poly, closest_poly+1,
+			closest_poly+2, normal);
 
-			//light loop
-			int cur_light;
-			for (	cur_light = 0;
-					cur_light < light_count;
-					cur_light++) {
-				//if in shadow, use only ambient light
-				if (in_shadow(prim, options.bias,
+		int cur_light;
+		for (	cur_light = 0;
+			cur_light < light_count;
+			cur_light++) {//light loop
+			//if in shadow, use only ambient light
+			switch(objs[cur_obj]->behavior) {
+			case DIFFUSE_AND_GLOSSY:
+				if (in_shadow(ray, options.bias,
 						objs,
 						lights[cur_light],
 						obj_count)) {
 					
 					struct Pixel *temp_color =
-							calc_ambient(lights[cur_light],
-							.3);
+						calc_ambient(
+						lights[cur_light],
+						.3);
 					free(color);
-					free_ray(prim);
+					free_ray(ray);
 					return temp_color;
 				}
 				struct Pixel *temp_color =
@@ -204,15 +243,17 @@ struct Pixel* cast_ray(int x, int y,
 				add_pixel(color, temp_color);
 				
 				free(temp_color);
-				//printf("color: %d, %d, %d\n",
-					//color->r, color->g,
-					//color->b);
-			}//end light loop
-		}
+			break;
+			case REFLECTION:
+				
+			break;
+			}//end obj behavior switch
+		}//end light loop
+		}//end closest poly if
 
 	}//end obj loop
 
-	free_ray(prim);
+	free_ray(ray);
 	return color;
 }
 
@@ -327,7 +368,9 @@ char in_shadow(struct Ray *init, float bias,
 			objs[cur_obj]->polys->m[0][cur_poly+2],
 			objs[cur_obj]->polys->m[1][cur_poly+2],
 			objs[cur_obj]->polys->m[2][cur_poly+2])) {
-			return 1;
+			if (objs[cur_obj]->behavior ==
+					DIFFUSE_AND_GLOSSY)
+				return 1;
 		}
 	}//end poly loop
 	}//end obj loop
