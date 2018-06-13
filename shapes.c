@@ -483,6 +483,10 @@ void gen_vertex_norm(struct Matrix *m){
 			add_vertex(buf, norm_out);
 		}
 	}
+	struct my_struct *current_vertex, *tmp;
+	HASH_ITER(hh, hashtable, current_vertex, tmp){
+		normalize(current_vertex -> normal);
+	}
 }
 
 
