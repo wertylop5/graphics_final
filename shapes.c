@@ -1,6 +1,6 @@
 #include"include/shapes.h"
 #include"include/lighting.h"
-#include"uthash.h"
+#include"include/uthash.h"
 
 struct Object *new_object(
 		struct Matrix *p,
@@ -432,9 +432,9 @@ void add_vertex(char *vertex, float *normal)
     HASH_FIND(hh, hashtable, &vertex, sizeof(char *), s);  /* vertex already in the hash? */
     if (s==NULL) {
         s = (struct my_struct*)malloc(sizeof(struct my_struct));
-        s->vertex = vertex;
+        strcpy(s->vertex , vertex);
         HASH_ADD( hh, hashtable, vertex, sizeof(char *), s );  /* vertex: name of key field */
-        strcpy(s->normal, normal);
+        memcpy(s->normal, normal, sizeof(float) * 3);
     }
     else{
     	int i = 0;
@@ -467,12 +467,12 @@ void print_hashtable()
     struct my_struct *s;
 
     for(s=hashtable; s != NULL; s=(struct my_struct*)(s->hh.next)) {
-        printf("Vertex %s: normal %s\n", s->vertex, &s->normal);
+        printf("Vertex %s\n", s->vertex);
     }
 }
 
 void gen_vertex_norm(struct Matrix *m){
-	int r, c, t = 0;
+	int c, t = 0;
 	char buf[256];
 	// Iterate through the triangle
 	for (; t < m -> cols; t+=3){
