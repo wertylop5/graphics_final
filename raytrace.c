@@ -60,18 +60,6 @@ struct Ray* new_primary_ray(
 	res->direction[1] = temp->m[1][0];
 	res->direction[2] = temp->m[2][0];
 	normalize(res->direction);
-	/*
-	   printf("generating primary ray: %f, %f, %f\n", 
-	   res->direction[0],
-	   res->direction[1],
-	   res->direction[2]);
-
-
-	   printf("generating primary ray origin: %f, %f, %f\n", 
-	   res->origin[0],
-	   res->origin[1],
-	   res->origin[2]);
-	   */
 
 	res->t = FLT_MAX;
 
@@ -207,38 +195,6 @@ float reflection_ray_strength(
 		struct Ray *init,
 		float *norm,
 		float ior) {
-	/*
-	float c1 = dot_product(init->direction, norm);
-	clamp(-1, 1, &c1);
-	
-	float eta;
-
-	//is ray going into material or out of it
-	if (c1 > 0) {	//out of material
-		norm[0] *= -1;
-		norm[1] *= -1;
-		norm[2] *= -1;
-
-		eta = ior/1;
-	}
-	else {	//into material
-		eta = 1/ior;
-	}
-	float inner = eta * (1 - c1*c1);
-	
-	//total internal reflection, no refraction
-	if (inner >= 1) return 1;
-	
-	float c2 = sqrtf(inner);
-	
-	//fresnel equations
-	float parallel = powf(
-		(ior*c1 - 1*c2) / (ior*c1 + 1*c2), 2);
-	float perpendicular = powf(
-		(1*c1 - ior*c2) / (1*c1 + ior*c2), 2);
-	
-	return .5 * (parallel + perpendicular);
-	*/
 	float cosi = dot_product(norm, init->direction);
 	clamp(-1, 1, &cosi);
 
@@ -286,8 +242,6 @@ void render(Frame f, struct Object **objs,
 		polycount += objs[temp]->polys->back;
 	}
 	
-	//clear_frame(f, 1);
-	//printf("poly count: %d\n", );
 	printf("lights: %d, objs: %d, polycount: %d, depth: %d\n",
 		light_count, obj_count,
 		polycount, options.recursion_depth);
@@ -313,7 +267,6 @@ struct Pixel* cast_ray(int x, int y,
 		struct Light **lights,
 		int obj_count, int light_count,
 		int depth_count) {
-	//struct Pixel *color = 0;
 	struct Ray *prim = new_primary_ray(x, y, options.fov);
 	
 	return trace(prim, objs, lights, obj_count, light_count,
@@ -340,20 +293,6 @@ struct Pixel *trace(struct Ray *ray,
 				cur_poly < polys->back;
 				cur_poly+=3) {//poly loop
 			t = FLT_MAX;
-
-			/*
-			printf("iter %f, %f, %f\n%f, %f, %f\n%f, %f, %f\n\n",
-			polys->m[0][cur_poly],
-			polys->m[1][cur_poly],
-			polys->m[2][cur_poly],
-			polys->m[0][cur_poly+1],
-			polys->m[1][cur_poly+1],
-			polys->m[2][cur_poly+1],
-			polys->m[0][cur_poly+2],
-			polys->m[1][cur_poly+2],
-			polys->m[2][cur_poly+2]
-			);
-			*/
 			
 			if (ray_triangle_intersect(
 					ray,
@@ -400,7 +339,7 @@ struct Pixel *trace(struct Ray *ray,
 						objs,
 						lights[cur_light],
 						obj_count)) {
-					//printf("diffuse shadow\n");
+					
 					//only use ambient light
 					struct Pixel *temp_color =
 						calc_ambient(
@@ -521,16 +460,9 @@ struct Pixel *trace(struct Ray *ray,
 						objs,
 						lights[cur_light],
 						obj_count)) {
-					printf("plane shadow\n");
 					//use a special "dark" color
 					pixel_color(color,
 						60, 60, 60);
-					/*
-					printf("%d, %d, %d shad color\n",
-						color->r,
-						color->g,
-						color->b);
-					*/
 					free_ray(ray);
 					return color;
 				}
@@ -579,7 +511,6 @@ char ray_triangle_intersect(
 	float a[] = {x1, y1, z1};
 	float b[] = {x2, y2, z2};
 	float c[] = {x3, y3, z3};
-	//printf("got %f, %f, %f\n", z1, z2, z3);
 
 	float s[3], edge1[3], edge2[3];
 	subtract_vectors(s, ray->origin, a);
@@ -596,7 +527,6 @@ char ray_triangle_intersect(
 	//this is the backface, so don't include it
 	//if it is close to zero, it is parallel to the triangle
 	float determinant = dot_product(p, edge1);
-	//printf("determinant: %f\n", determinant);
 	if (determinant < 0.0000001f) return 0;
 
 	//res contains solutions for t, u, v
@@ -612,7 +542,6 @@ char ray_triangle_intersect(
 			res[1] < 0 ||
 			res[2] < 0 ||
 			res[1] > 1 ||
-			//res[2] > 1 ||
 			res[1] + res[2] > 1) {
 		//point is not inside triangle
 		return 0;
@@ -626,14 +555,7 @@ char ray_triangle_intersect(
 	*t = res[0];
 	if (u != 0) *u = res[1];
 	if (v != 0) *v = res[2];
-	/*
-	   printf("%f, %f, %f\n\
-	   %f, %f, %f\n\
-	   %f, %f, %f\n\n",
-	   x1, y1, z1,
-	   x2, y2, z2,
-	   x3, y3, z3);
-	   */
+	
 	return 1;
 }
 
@@ -682,13 +604,9 @@ char in_shadow(struct Ray *init, float bias,
 			objs[cur_obj]->polys->m[0][cur_poly+2],
 			objs[cur_obj]->polys->m[1][cur_poly+2],
 			objs[cur_obj]->polys->m[2][cur_poly+2])) {
-			/*
-			if (
-				objs[cur_obj]->behavior ==
-				DIFFUSE_AND_GLOSSY ||
-				objs[cur_obj]->behavior ==
-				PLANE)
-				*/
+			
+			if (objs[cur_obj]->behavior !=
+				REFLECTION_AND_REFRACTION)
 				return 1;
 		}
 	}//end poly loop
