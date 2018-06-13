@@ -1,5 +1,6 @@
 #include"include/shapes.h"
 #include"include/lighting.h"
+#include"uthash.h"
 
 struct Object *new_object(
 		struct Matrix *p,
@@ -412,5 +413,69 @@ struct Matrix* torus_points(float cx, float cy, float cz,
 	}
 	return m;
 }
+
+//Any C structure can be stored in a hash table using uthash
+
+struct my_struct {
+    int vertex;            /* we'll use this field as the key */
+    char name[10];             
+    UT_hash_handle hh; /* makes this structure hashable */
+};
+
+struct my_struct *hashtable = NULL;
+
+void add_vertex(int vertex, char *name)
+{
+    struct my_struct *s;
+
+    HASH_FIND_INT(hashtable, &vertex, s);  /* id already in the hash? */
+    if (s==NULL) {
+        s = (struct my_struct*)malloc(sizeof(struct my_struct));
+        s->vertex = vertex;
+        HASH_ADD_INT( hashtable, vertex, s );  /* id: name of key field */
+    }
+    strcpy(s->name, name);
+}
+
+struct my_struct *find_vertex(int vertex) {
+    struct my_struct *s;
+
+    HASH_FIND_INT( hashtable, &vertex, s );  
+    return s;
+}
+
+void print_vertex()
+{
+    struct my_struct *s;
+
+    for(s=users; s != NULL; s=(struct my_struct*)(s->hh.next)) {
+        printf("user id %d: name %s\n", s->id, s->name);
+    }
+}
+
+void delete_all()
+{
+    struct my_struct *current_vertex, *tmp;
+
+    HASH_ITER(hh, hashtable, current_vertex, tmp) {
+        HASH_DEL(hashtable,current_vertex);  /* delete it (hashtable advances to next) */
+        free(current_vertex);            /* free it */
+    }
+}
+
+void print_hashtable()
+{
+    struct my_struct *s;
+
+    for(s=hashtable; s != NULL; s=(struct my_struct*)(s->hh.next)) {
+        printf("Vertex %d: name %s\n", s->vertex, s->name);
+    }
+}
+
+void gen_vertex_norm(struct Matrix *m){
+	
+}
+
+
 
 
