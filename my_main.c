@@ -1,3 +1,5 @@
+//shoutout to scratchapixel.com
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -38,7 +40,7 @@ void my_main() {
 	int obj_count = 0, light_count = 0;
 
 	options.fov = M_PI/4;
-	options.recursion_depth = 2;
+	options.recursion_depth = 3;
 	options.bias = 0.0005f;
 	options.camera_origin[0] = 0.0f;
 	options.camera_origin[1] = 0.0f;
@@ -60,8 +62,10 @@ void my_main() {
 	for (cur_frame = 0; cur_frame < tot_frames; cur_frame++) {//frame loop
 	obj_count = light_count = 0;
 	s = new_rcs_stack(3);
-	lights[0] = new_light(0, 120, 0, 0, 255, 0, -1, 0, -1);
-	light_count++;
+	lights[light_count++] =
+		new_light(0, 120, 0, 0, 255, 0, -1, 0, -1);
+	//lights[light_count++] =
+		//new_light(0, 0, 120, 0, 0, 200, 1, 0, -1);
 	clear(f, z);
 	
 	//printf("frame %d\n", cur_frame);
@@ -190,7 +194,7 @@ void my_main() {
 			objs[obj_count++] = new_object(
 				p,
 				1, 1, 1,
-				REFLECTION);
+				REFLECTION_AND_REFRACTION);
 			
 			free_matrix(p);
 		break;

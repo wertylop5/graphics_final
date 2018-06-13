@@ -16,6 +16,7 @@
 #define STEP	.01f
 
 //object's behavior under light
+//PLANE should only be used with box
 #define DIFFUSE_AND_GLOSSY		0
 #define REFLECTION_AND_REFRACTION	1
 #define REFLECTION 			2

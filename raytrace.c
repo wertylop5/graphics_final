@@ -117,6 +117,56 @@ struct Ray* new_reflection_ray(
 	return res;
 }
 
+struct Ray* new_refraction_ray(
+		struct Ray *init,
+		float *norm,
+		float ior) {
+	float c1 = dot_product(init->direction, norm);
+	float eta;
+
+	//is ray going into material or out of it
+	if (c1 > 0) {
+		norm[0] *= -1;
+		norm[1] *= -1;
+		norm[2] *= -1;
+
+		eta = ior/1;
+	}
+	else {
+		eta = 1/ior;
+	}
+	float inner = (1 - eta*eta) * (1 - c1*c1);
+	
+	//total internal reflection, no refraction
+	if (inner < 0) return 0;
+	
+	float c2 = sqrtf(inner);
+	
+	struct Ray *res = (struct Ray *)malloc(sizeof(struct Ray));
+	res->origin[0] =
+		init->direction[0]*init->t +
+		init->origin[0] + norm[0]*options.bias;
+	res->origin[1] =
+		init->direction[1]*init->t +
+		init->origin[1] + norm[1]*options.bias;
+	res->origin[2] =
+		init->direction[2]*init->t +
+		init->origin[2] + norm[2]*options.bias;
+	
+	//no dealing with angles, wow!
+	res->direction[0] =
+		c1*init->direction[0] +
+		norm[0]*(eta*c1 - c2);
+	res->direction[1] =
+		c1*init->direction[1] +
+		norm[1]*(eta*c1 - c2);
+	res->direction[2] =
+		c1*init->direction[2] +
+		norm[2]*(eta*c1 - c2);
+	
+	return res;
+}
+
 void render(Frame f, struct Object **objs,
 		struct Light **lights,
 		int obj_count, int light_count) {
@@ -126,10 +176,17 @@ void render(Frame f, struct Object **objs,
 		options.bkgd_color[GREEN],
 		options.bkgd_color[BLUE]);
 	init_frame(f, &bkgd_pixel);
+
+	int temp, polycount = 0;
+	for (temp = 0; temp < obj_count; temp++) {
+		polycount += objs[temp]->polys->back;
+	}
 	
 	//clear_frame(f, 1);
 	//printf("poly count: %d\n", );
-	printf("lights: %d, objs: %d\n", light_count, obj_count);
+	printf("lights: %d, objs: %d, polycount: %d, depth: %d\n",
+		light_count, obj_count,
+		polycount, options.recursion_depth);
 
 	struct Pixel *pixel;
 	int w, h;
@@ -239,7 +296,7 @@ struct Pixel *trace(struct Ray *ray,
 						objs,
 						lights[cur_light],
 						obj_count)) {
-					
+					//printf("diffuse shadow\n");
 					//only use ambient light
 					struct Pixel *temp_color =
 						calc_ambient(
@@ -259,6 +316,53 @@ struct Pixel *trace(struct Ray *ray,
 				
 				free(temp_color);
 				temp_color = 0;
+			}
+			break;
+			case REFLECTION_AND_REFRACTION:
+			{
+				struct Pixel *refract_color = 0;
+				
+				//just use glass for now
+				struct Ray *refract =
+					new_refraction_ray(
+					ray, normal, 1.5);
+				if (refract != 0) {
+				refract_color =
+					trace(refract,
+						objs, lights,
+						obj_count,
+						light_count,
+						depth_count-1);
+				}
+				
+				struct Ray *reflect =
+					new_reflection_ray(
+					ray, normal);
+				struct Pixel *reflect_color = 
+					trace(reflect,
+						objs, lights,
+						obj_count,
+						light_count,
+						depth_count-1);
+				
+				//if nothing hit
+				if (refract_color == 0 &&
+						reflect_color == 0) {
+					free(color);
+					color = 0;
+				}
+				if (refract_color != 0) {
+					add_pixel(color,
+						refract_color);
+					free(refract_color);
+					refract_color = 0;
+				}
+				if (reflect_color != 0) {
+					add_pixel(color,
+						reflect_color);
+					free(reflect_color);
+					reflect_color = 0;
+				}
 			}
 			break;
 			case REFLECTION:
@@ -297,9 +401,16 @@ struct Pixel *trace(struct Ray *ray,
 						objs,
 						lights[cur_light],
 						obj_count)) {
+					printf("plane shadow\n");
 					//use a special "dark" color
 					pixel_color(color,
 						60, 60, 60);
+					/*
+					printf("%d, %d, %d shad color\n",
+						color->r,
+						color->g,
+						color->b);
+					*/
 					free_ray(ray);
 					return color;
 				}
@@ -322,25 +433,9 @@ struct Pixel *trace(struct Ray *ray,
 				//if the reflected ray(s)
 				//hit something
 				if (temp_color != 0) {
-					/*
-					printf("%d,%d,%d temp\n",
-						temp_color->r,
-						temp_color->g,
-						temp_color->b);
-					printf("%d,%d,%d colorb\n",
-						color->r,
-						color->g,
-						color->b);
-					*/
 					add_pixel(color, temp_color);
 					free(temp_color);
 					temp_color = 0;
-					/*
-					printf("%d,%d,%d colora\n",
-						color->r,
-						color->g,
-						color->b);
-					*/
 				}
 			}
 			break;
@@ -465,8 +560,13 @@ char in_shadow(struct Ray *init, float bias,
 			objs[cur_obj]->polys->m[0][cur_poly+2],
 			objs[cur_obj]->polys->m[1][cur_poly+2],
 			objs[cur_obj]->polys->m[2][cur_poly+2])) {
-			if (objs[cur_obj]->behavior ==
-					DIFFUSE_AND_GLOSSY)
+			/*
+			if (
+				objs[cur_obj]->behavior ==
+				DIFFUSE_AND_GLOSSY ||
+				objs[cur_obj]->behavior ==
+				PLANE)
+				*/
 				return 1;
 		}
 	}//end poly loop

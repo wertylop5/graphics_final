@@ -42,7 +42,13 @@ struct Ray* new_reflection_ray(
 		struct Ray *init,
 		float *norm);
 
-struct Ray* new_refraction_ray(struct Ray *init);
+//assume air has index of refraction (ior) of 1
+//as such, the ior here references the ior of the material
+//(glass usually)
+struct Ray* new_refraction_ray(
+		struct Ray *init,
+		float *norm,
+		float ior);
 
 //renders scene using ray tracing
 void render(Frame f, struct Object **objs,
