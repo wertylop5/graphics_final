@@ -50,6 +50,13 @@ struct Ray* new_refraction_ray(
 		float *norm,
 		float ior);
 
+//uses fresnel equation to modify ray strength
+//returns strength of reflection color
+float reflection_ray_strength(
+		struct Ray *init,
+		float *norm,
+		float ior);
+
 //renders scene using ray tracing
 void render(Frame f, struct Object **objs,
 		struct Light **lights,
@@ -63,7 +70,7 @@ returns 0 if no intersection, 1 if there is
 */
 char ray_triangle_intersect(
 		struct Ray *ray,
-		float *t,
+		float *t, float *u, float *v,
 		float x1, float y1, float z1,
 		float x2, float y2, float z2,
 		float x3, float y3, float z3);

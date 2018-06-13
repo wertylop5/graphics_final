@@ -125,14 +125,14 @@ struct Ray* new_refraction_ray(
 	float eta;
 
 	//is ray going into material or out of it
-	if (c1 > 0) {
+	if (c1 > 0) {	//out of material
 		norm[0] *= -1;
 		norm[1] *= -1;
 		norm[2] *= -1;
 
 		eta = ior/1;
 	}
-	else {
+	else {	//into material
 		eta = 1/ior;
 	}
 	float inner = (1 - eta*eta) * (1 - c1*c1);
@@ -165,6 +165,41 @@ struct Ray* new_refraction_ray(
 		norm[2]*(eta*c1 - c2);
 	
 	return res;
+}
+
+float reflection_ray_strength(
+		struct Ray *init,
+		float *norm,
+		float ior) {
+	
+	float c1 = dot_product(init->direction, norm);
+	float eta;
+
+	//is ray going into material or out of it
+	if (c1 > 0) {	//out of material
+		norm[0] *= -1;
+		norm[1] *= -1;
+		norm[2] *= -1;
+
+		eta = ior/1;
+	}
+	else {	//into material
+		eta = 1/ior;
+	}
+	float inner = (1 - eta*eta) * (1 - c1*c1);
+	
+	//total internal reflection, no refraction
+	if (inner < 0) return 1;
+	
+	float c2 = sqrtf(inner);
+	
+	//fresnel equations
+	float parallel = powf(
+		(ior*c1 - 1*c2) / (ior*c1 + 1*c2), 2);
+	float perpendicular = powf(
+		(ior*c2 - 1*c1) / (ior*c2 + 1*c1), 2);
+	
+	return .5 * (parallel + perpendicular);
 }
 
 void render(Frame f, struct Object **objs,
@@ -227,7 +262,7 @@ struct Pixel *trace(struct Ray *ray,
 	
 	struct Pixel *color = 0;
 	int cur_poly, cur_obj;
-	float t;
+	float t, u, v;
 	int closest_poly = -1, closest_obj = -1;
 
 	for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
@@ -253,7 +288,7 @@ struct Pixel *trace(struct Ray *ray,
 			
 			if (ray_triangle_intersect(
 					ray,
-					&t,
+					&t, &u, &v,
 					polys->m[0][cur_poly],
 					polys->m[1][cur_poly],
 					polys->m[2][cur_poly],
@@ -351,13 +386,34 @@ struct Pixel *trace(struct Ray *ray,
 					free(color);
 					color = 0;
 				}
+				
+				float reflect_strength = 
+					reflection_ray_strength(
+					ray, normal, 1.5);
 				if (refract_color != 0) {
+					float refract_strength =
+						1 - reflect_strength;
+					
+					refract_color->r *= refract_strength;
+					refract_color->g *= refract_strength;
+					refract_color->b *= refract_strength;
+					/*
+					printf("%d,%d,%d refract\n",
+						refract_color->r,
+						refract_color->g,
+						refract_color->b);
+					*/
+					
 					add_pixel(color,
 						refract_color);
 					free(refract_color);
 					refract_color = 0;
 				}
 				if (reflect_color != 0) {
+					reflect_color->r *= reflect_strength;
+					reflect_color->g *= reflect_strength;
+					reflect_color->b *= reflect_strength;
+					
 					add_pixel(color,
 						reflect_color);
 					free(reflect_color);
@@ -451,7 +507,7 @@ struct Pixel *trace(struct Ray *ray,
 
 char ray_triangle_intersect(
 		struct Ray *ray,
-		float *t,
+		float *t, float *u, float *v,
 		float x1, float y1, float z1,
 		float x2, float y2, float z2,
 		float x3, float y3, float z3) {
@@ -504,6 +560,8 @@ char ray_triangle_intersect(
 	//and only a certain (ie smallest)
 	//value of t would be wanted
 	*t = res[0];
+	if (u != 0) *u = res[1];
+	if (v != 0) *v = res[2];
 	/*
 	   printf("%f, %f, %f\n\
 	   %f, %f, %f\n\
@@ -550,7 +608,7 @@ char in_shadow(struct Ray *init, float bias,
 		shadow.direction[2] = light->light_vector[2];
 		
 		if (ray_triangle_intersect(&shadow,
-			&t,
+			&t, 0, 0,
 			objs[cur_obj]->polys->m[0][cur_poly],
 			objs[cur_obj]->polys->m[1][cur_poly],
 			objs[cur_obj]->polys->m[2][cur_poly],
