@@ -42,6 +42,7 @@ struct command
       double d[4];
       double r;
       SYMTAB *cs;
+      SYMTAB *behavior;
     } sphere;
     struct {
       SYMTAB *constants;
@@ -57,6 +58,7 @@ struct command
       double d[4];
       double r0,r1;
       SYMTAB *cs;
+      SYMTAB *behavior;
     } torus;
     struct {
       SYMTAB *constants;

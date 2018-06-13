@@ -172,10 +172,29 @@ void my_main() {
 			add_sphere(p, temp[0], temp[1], temp[2],
 				op[x].op.sphere.r, 12);
 			matrix_mult(peek(s), p);
+			
+			int behavior = -1;
+			SYMTAB *b = op[x].op.sphere.behavior;
+			if (b != 0) {
+			if (!strncmp(b->name, "diffuse", strlen(b->name))) {
+				behavior = DIFFUSE_AND_GLOSSY;
+			}
+			else if (!strncmp(b->name,
+						"reflect_refract", strlen(b->name))) {
+				behavior = REFLECTION_AND_REFRACTION;
+			}
+			else if (!strncmp(b->name, "reflect", strlen(b->name))) {
+				behavior = REFLECTION;
+			}
+			}
+			else {
+				behavior = DIFFUSE_AND_GLOSSY;
+			}
+			
 			objs[obj_count++] = new_object(
 				p,
 				1, 1, 1,
-				DIFFUSE_AND_GLOSSY);
+				behavior);
 			
 			free_matrix(p);
 		break;
@@ -191,10 +210,29 @@ void my_main() {
 				op[x].op.torus.r1,
 				15);
 			matrix_mult(peek(s), p);
+			
+			int behavior = -1;
+			SYMTAB *b = op[x].op.torus.behavior;
+			if (b != 0) {
+			if (!strncmp(b->name, "diffuse", strlen(b->name))) {
+				behavior = DIFFUSE_AND_GLOSSY;
+			}
+			else if (!strncmp(b->name,
+						"reflect_refract", strlen(b->name))) {
+				behavior = REFLECTION_AND_REFRACTION;
+			}
+			else if (!strncmp(b->name, "reflect", strlen(b->name))) {
+				behavior = REFLECTION;
+			}
+			}
+			else {
+				behavior = DIFFUSE_AND_GLOSSY;
+			}
+			
 			objs[obj_count++] = new_object(
 				p,
 				1, 1, 1,
-				REFLECTION_AND_REFRACTION);
+				behavior);
 			
 			free_matrix(p);
 		break;

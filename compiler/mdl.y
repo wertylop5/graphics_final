@@ -31,7 +31,7 @@
 %token <string> CONSTANTS SAVE_COORDS CAMERA
 %token <string> SPHERE TORUS BOX LINE CS MESH TEXTURE
 %token <string> STRING
-%token <string> SET MOVE SCALE ROTATE BASENAME SAVE_KNOBS TWEEN FRAMES VARY
+%token <string> SET MOVE SCALE ROTATE BASENAME SAVE_KNOBS TWEEN FRAMES VARY BEHAVIOR
 %token <string> PUSH POP SAVE GENERATE_RAYFILES
 %token <string> SHADING SHADING_TYPE SETKNOBS FOCAL DISPLAY WEB
 %token <string> CO
@@ -57,6 +57,7 @@ SPHERE DOUBLE DOUBLE DOUBLE DOUBLE
   op[lastop].op.sphere.r = $5;
   op[lastop].op.sphere.constants = NULL;
   op[lastop].op.sphere.cs = NULL;
+  op[lastop].op.sphere.behavior = NULL;
   lastop++;
 }|
 SPHERE DOUBLE DOUBLE DOUBLE DOUBLE STRING
@@ -71,6 +72,7 @@ SPHERE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.sphere.constants = NULL;
   m = (struct Matrix *)new_matrix(4,4);
   op[lastop].op.sphere.cs = add_symbol($6,SYM_MATRIX,m);
+  op[lastop].op.sphere.behavior = NULL;
   lastop++;
 }|
 SPHERE STRING DOUBLE DOUBLE DOUBLE DOUBLE
@@ -85,6 +87,7 @@ SPHERE STRING DOUBLE DOUBLE DOUBLE DOUBLE
   op[lastop].op.sphere.cs = NULL;
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.sphere.constants = add_symbol($2,SYM_CONSTANTS,c);
+  op[lastop].op.sphere.behavior = NULL;
   lastop++;
 }|
 SPHERE STRING DOUBLE DOUBLE DOUBLE DOUBLE STRING
@@ -101,6 +104,21 @@ SPHERE STRING DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.sphere.cs = add_symbol($7,SYM_MATRIX,m);
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.sphere.constants = add_symbol($2,SYM_CONSTANTS,c);
+  op[lastop].op.sphere.behavior = NULL;
+  lastop++;
+}|
+SPHERE DOUBLE DOUBLE DOUBLE DOUBLE BEHAVIOR STRING
+{
+  lineno++;
+  op[lastop].opcode = SPHERE;
+  op[lastop].op.sphere.d[0] = $2;
+  op[lastop].op.sphere.d[1] = $3;
+  op[lastop].op.sphere.d[2] = $4;
+  op[lastop].op.sphere.d[3] = 0;
+  op[lastop].op.sphere.r = $5;
+  op[lastop].op.sphere.constants = NULL;
+  op[lastop].op.sphere.cs = NULL;
+  op[lastop].op.sphere.behavior = add_symbol($7,SYM_STRING,0);
   lastop++;
 }|
 
@@ -116,6 +134,7 @@ TORUS DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE
   op[lastop].op.torus.r1 = $6;
   op[lastop].op.torus.constants = NULL;
   op[lastop].op.torus.cs = NULL;
+  op[lastop].op.torus.behavior = NULL;
 
   lastop++;
 }|
@@ -132,6 +151,8 @@ TORUS DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.torus.constants = NULL;
   m = (struct Matrix *)new_matrix(4,4);
   op[lastop].op.torus.cs = add_symbol($7,SYM_MATRIX,m);
+  op[lastop].op.torus.behavior = NULL;
+  
   lastop++;
 }|
 TORUS STRING DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE
@@ -147,6 +168,7 @@ TORUS STRING DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE
   op[lastop].op.torus.cs = NULL;
   c = (struct constants *)malloc(sizeof(struct constants));
   op[lastop].op.torus.constants = add_symbol($2,SYM_CONSTANTS,c);
+  op[lastop].op.torus.behavior = NULL;
 
   lastop++;
 }|
@@ -164,6 +186,23 @@ TORUS STRING DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE STRING
   op[lastop].op.torus.constants = add_symbol($2,SYM_CONSTANTS,c);
   m = (struct Matrix *)new_matrix(4,4);
   op[lastop].op.torus.cs = add_symbol($8,SYM_MATRIX,m);
+  op[lastop].op.torus.behavior = NULL;
+
+  lastop++;
+}|
+TORUS DOUBLE DOUBLE DOUBLE DOUBLE DOUBLE BEHAVIOR STRING
+{
+  lineno++;
+  op[lastop].opcode = TORUS;
+  op[lastop].op.torus.d[0] = $2;
+  op[lastop].op.torus.d[1] = $3;
+  op[lastop].op.torus.d[2] = $4;
+  op[lastop].op.torus.d[3] = 0;
+  op[lastop].op.torus.r0 = $5;
+  op[lastop].op.torus.r1 = $6;
+  op[lastop].op.torus.constants = NULL;
+  op[lastop].op.torus.cs = NULL;
+  op[lastop].op.torus.behavior = add_symbol($8,SYM_STRING,0);
 
   lastop++;
 }|

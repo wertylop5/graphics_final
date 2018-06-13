@@ -1,0 +1,12 @@
+push
+move -1 0 -8
+//sphere 3 0 -4 2
+sphere -2 0 -12 2
+push
+rotate x 45
+torus -2 -3 -4 .5 2
+pop
+box -4 -2 5 10 1 12
+display
+save test.png
+

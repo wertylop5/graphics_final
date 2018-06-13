@@ -39,6 +39,7 @@ ID [a-zA-Z][a-zA-Z0-9_]*
 "tween" {return TWEEN;}
 "frames" {return FRAMES;}
 "vary" {return VARY;}
+"behavior" {return BEHAVIOR;}
 
 "push" {return PUSH;}
 "pop" {return POP;}
