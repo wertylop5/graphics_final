@@ -97,6 +97,9 @@ char in_shadow(struct Ray *init, float bias,
 		struct Light *light,
 		int obj_count);
 
+//limits value to [lo, hi]
+void clamp(float lo, float hi, float *val);
+
 void free_ray(struct Ray *r);
 
 #endif

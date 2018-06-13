@@ -85,22 +85,40 @@ struct Ray* new_reflection_ray(
 		struct Ray *init,
 		float *norm) {
 	struct Ray *res = (struct Ray *)malloc(sizeof(struct Ray));
+	float dot = dot_product(init->direction, norm);
 	
 	//the reflected ray starts where the original ray hit
 	//the object
-	res->origin[0] =
-		init->direction[0]*init->t +
-		init->origin[0] + norm[0]*options.bias;
-	res->origin[1] =
-		init->direction[1]*init->t +
-		init->origin[1] + norm[1]*options.bias;
-	res->origin[2] =
-		init->direction[2]*init->t +
-		init->origin[2] + norm[2]*options.bias;
+	if (dot < 0) {
+		res->origin[0] =
+			init->direction[0]*init->t +
+			init->origin[0] + norm[0]*options.bias;
+		res->origin[1] =
+			init->direction[1]*init->t +
+			init->origin[1] + norm[1]*options.bias;
+		res->origin[2] =
+			init->direction[2]*init->t +
+			init->origin[2] + norm[2]*options.bias;
+	}
+	else {
+		//total internal reflection, so displace it inwards
+		res->origin[0] =
+			init->direction[0]*init->t +
+			init->origin[0] - norm[0]*options.bias;
+		res->origin[1] =
+			init->direction[1]*init->t +
+			init->origin[1] - norm[1]*options.bias;
+		res->origin[2] =
+			init->direction[2]*init->t +
+			init->origin[2] - norm[2]*options.bias;
+		
+		norm[0] *= -1;
+		norm[1] *= -1;
+		norm[2] *= -1;
+	}
 	
 
 	//compute reflected ray direction
-	float dot = dot_product(init->direction, norm);
 	res->direction[0] =
 		init->direction[0] - 
 		2*dot*norm[0];
@@ -121,11 +139,26 @@ struct Ray* new_refraction_ray(
 		struct Ray *init,
 		float *norm,
 		float ior) {
+	struct Ray *res = (struct Ray *)malloc(sizeof(struct Ray));
+	
 	float c1 = dot_product(init->direction, norm);
+	clamp(-1, 1, &c1);
+
+	
 	float eta;
 
 	//is ray going into material or out of it
 	if (c1 > 0) {	//out of material
+		res->origin[0] =
+			init->direction[0]*init->t +
+			init->origin[0] + norm[0]*options.bias;
+		res->origin[1] =
+			init->direction[1]*init->t +
+			init->origin[1] + norm[1]*options.bias;
+		res->origin[2] =
+			init->direction[2]*init->t +
+			init->origin[2] + norm[2]*options.bias;
+		
 		norm[0] *= -1;
 		norm[1] *= -1;
 		norm[2] *= -1;
@@ -133,25 +166,28 @@ struct Ray* new_refraction_ray(
 		eta = ior/1;
 	}
 	else {	//into material
+		res->origin[0] =
+			init->direction[0]*init->t +
+			init->origin[0] - norm[0]*options.bias;
+		res->origin[1] =
+			init->direction[1]*init->t +
+			init->origin[1] - norm[1]*options.bias;
+		res->origin[2] =
+			init->direction[2]*init->t +
+			init->origin[2] - norm[2]*options.bias;
+		
 		eta = 1/ior;
 	}
 	float inner = (1 - eta*eta) * (1 - c1*c1);
 	
 	//total internal reflection, no refraction
-	if (inner < 0) return 0;
+	if (inner < 0) {
+		free_ray(res);
+		res = 0;
+		return 0;
+	}
 	
 	float c2 = sqrtf(inner);
-	
-	struct Ray *res = (struct Ray *)malloc(sizeof(struct Ray));
-	res->origin[0] =
-		init->direction[0]*init->t +
-		init->origin[0] + norm[0]*options.bias;
-	res->origin[1] =
-		init->direction[1]*init->t +
-		init->origin[1] + norm[1]*options.bias;
-	res->origin[2] =
-		init->direction[2]*init->t +
-		init->origin[2] + norm[2]*options.bias;
 	
 	//no dealing with angles, wow!
 	res->direction[0] =
@@ -171,8 +207,10 @@ float reflection_ray_strength(
 		struct Ray *init,
 		float *norm,
 		float ior) {
-	
+	/*
 	float c1 = dot_product(init->direction, norm);
+	clamp(-1, 1, &c1);
+	
 	float eta;
 
 	//is ray going into material or out of it
@@ -186,10 +224,10 @@ float reflection_ray_strength(
 	else {	//into material
 		eta = 1/ior;
 	}
-	float inner = (1 - eta*eta) * (1 - c1*c1);
+	float inner = eta * (1 - c1*c1);
 	
 	//total internal reflection, no refraction
-	if (inner < 0) return 1;
+	if (inner >= 1) return 1;
 	
 	float c2 = sqrtf(inner);
 	
@@ -197,7 +235,38 @@ float reflection_ray_strength(
 	float parallel = powf(
 		(ior*c1 - 1*c2) / (ior*c1 + 1*c2), 2);
 	float perpendicular = powf(
-		(ior*c2 - 1*c1) / (ior*c2 + 1*c1), 2);
+		(1*c1 - ior*c2) / (1*c1 + ior*c2), 2);
+	
+	return .5 * (parallel + perpendicular);
+	*/
+	float cosi = dot_product(norm, init->direction);
+	clamp(-1, 1, &cosi);
+
+	float eta, n1, n2;
+
+	//is ray going into material or out of it
+	if (cosi > 0) {	//out of material
+		n1 = ior;
+		n2 = 1;
+	}
+	else {	//into material
+		n1 = 1;
+		n2 = ior;
+	}
+	eta = n1/n2;
+	
+	float sint = eta*eta*fmaxf(1 - cosi*cosi, 0);
+	
+	//total internal reflection
+	if (sint >= 1) return 1;
+	float cost = sqrtf(fmaxf(1 - sint, 0));
+	
+	cosi = fabsf(cosi);
+	
+	float perpendicular = powf(
+		(n1*cosi - n2*cost) / (n1*cosi + n2*cost), 2);
+	float parallel = powf(
+		(n1*cost - n2*cosi) / (n1*cost - n2*cosi), 2);
 	
 	return .5 * (parallel + perpendicular);
 }
@@ -390,6 +459,7 @@ struct Pixel *trace(struct Ray *ray,
 				float reflect_strength = 
 					reflection_ray_strength(
 					ray, normal, 1.5);
+				//printf("refl str: %f\n", reflect_strength);
 				if (refract_color != 0) {
 					float refract_strength =
 						1 - reflect_strength;
@@ -631,6 +701,11 @@ char in_shadow(struct Ray *init, float bias,
 	}//end obj loop
 	
 	return 0;
+}
+
+void clamp(float lo, float hi, float *val) {
+	*val = *val > 1 ? 1 : *val;
+	*val = *val < -1 ? -1 : *val;
 }
 
 void free_ray(struct Ray *r) {
