@@ -258,6 +258,10 @@ void render(Frame f, struct Object **objs,
 				plot_point_trace(f, w, h, pixel);
 				free(pixel);
 			}
+			else {
+				plot_point_trace(f, w,
+					h, &bkgd_pixel);
+			}
 		}//end width loop
 	}//end height loop
 }
@@ -345,9 +349,10 @@ struct Pixel *trace(struct Ray *ray,
 						calc_ambient(
 						lights[cur_light],
 						.3);
-					free(color);
+					add_pixel(color, temp_color);
+					free(temp_color);
 					free_ray(ray);
-					return temp_color;
+					return color;
 				}
 				
 				struct Pixel *temp_color =

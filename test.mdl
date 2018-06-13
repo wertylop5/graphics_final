@@ -1,8 +1,8 @@
 push
 move -1 0 -8
-sphere 2 1 -15 2
-sphere 0 1 -6 2 behavior reflect_refract
-box -4 -2 5 10 1 12
+sphere 2 1 -7 2
+sphere 0 1 0 2 behavior reflect
+box -4 -2 5 10 1 15
 display
 save test.png
 
