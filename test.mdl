@@ -1,6 +1,6 @@
 push
 move -1 0 -8
-sphere 3 0 -4 2
+//sphere 3 0 -4 2
 sphere -2 0 -9 2
 push
 rotate x 45
