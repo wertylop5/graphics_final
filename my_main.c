@@ -63,7 +63,7 @@ void my_main() {
 	obj_count = light_count = 0;
 	s = new_rcs_stack(3);
 	lights[light_count++] =
-		new_light(0, 120, 0, 0, 255, 0, -1, 0, -1);
+		new_light(0, 120, 0, 0, 255, 0, -1, -1, -1);
 	//lights[light_count++] =
 		//new_light(0, 0, 120, 0, 0, 200, 1, 0, -1);
 	clear(f, z);

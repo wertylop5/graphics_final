@@ -459,7 +459,7 @@ struct Pixel *trace(struct Ray *ray,
 				float reflect_strength = 
 					reflection_ray_strength(
 					ray, normal, 1.5);
-				//printf("refl str: %f\n", reflect_strength);
+				
 				if (refract_color != 0) {
 					float refract_strength =
 						1 - reflect_strength;
@@ -467,12 +467,6 @@ struct Pixel *trace(struct Ray *ray,
 					refract_color->r *= refract_strength;
 					refract_color->g *= refract_strength;
 					refract_color->b *= refract_strength;
-					/*
-					printf("%d,%d,%d refract\n",
-						refract_color->r,
-						refract_color->g,
-						refract_color->b);
-					*/
 					
 					add_pixel(color,
 						refract_color);
