@@ -414,46 +414,45 @@ struct Matrix* torus_points(float cx, float cy, float cz,
 	return m;
 }
 
+
 //Any C structure can be stored in a hash table using uthash
 
 
 struct my_struct {
-    int vertex;            /* we'll use this field as the key */
-    char name[10];             
+    char vertex[256];            /* we'll use this field as the key */
+    float normal[3];             
     UT_hash_handle hh; /* makes this structure hashable */
 };
 
 struct my_struct *hashtable = NULL;
 
-void add_vertex(int vertex, char *name)
+void add_vertex(char *vertex, float *normal)
 {
     struct my_struct *s;
 
-    HASH_FIND_INT(hashtable, &vertex, s);  /* id already in the hash? */
+    HASH_FIND(hh, hashtable, &vertex, sizeof(char *), s);  /* vertex already in the hash? */
     if (s==NULL) {
         s = (struct my_struct*)malloc(sizeof(struct my_struct));
-        s->vertex = vertex;
-        HASH_ADD_INT( hashtable, vertex, s );  /* id: name of key field */
+        strcpy(s->vertex , vertex);
+        HASH_ADD( hh, hashtable, vertex, sizeof(char *), s );  /* vertex: name of key field */
+        memcpy(s->normal, normal, sizeof(float) * 3);
     }
-    strcpy(s->name, name);
+    else{
+    	int i = 0;
+    	for (; i < 3; i++){
+    		s -> normal[i] += normal[i];
+    	}
+    }
+    
 }
 
-struct my_struct *find_vertex(int vertex) {
+struct my_struct *find_vertex(char *vertex) {
     struct my_struct *s;
 
-    HASH_FIND_INT( hashtable, &vertex, s );  
+   HASH_FIND(hh, hashtable, &vertex, sizeof(char *), s);
     return s;
 }
-/*
-void print_vertex()
-{
-    struct my_struct *s;
 
-    for(s=users; s != NULL; s=(struct my_struct*)(s->hh.next)) {
-        printf("user id %d: name %s\n", s->id, s->name);
-    }
-}
-*/
 void delete_all()
 {
     struct my_struct *current_vertex, *tmp;
@@ -469,12 +468,26 @@ void print_hashtable()
     struct my_struct *s;
 
     for(s=hashtable; s != NULL; s=(struct my_struct*)(s->hh.next)) {
-        printf("Vertex %d: name %s\n", s->vertex, s->name);
+        printf("Vertex %s\n", s->vertex);
     }
 }
 
 void gen_vertex_norm(struct Matrix *m){
-	
+	int c, t = 0;
+	char buf[256];
+	// Iterate through the triangle
+	for (; t < m -> cols; t+=3){
+		float norm_out[3];
+		find_norm(m,t,t+1,t+2, norm_out);
+		for (c = t; c < t + 3; c++){
+			sprintf(buf, "%f6.3,%f6.3,%f6.3", m -> m[0][c],m -> m[1][c],m -> m[2][c]);
+			add_vertex(buf, norm_out);
+		}
+	}
+	struct my_struct *current_vertex, *tmp;
+	HASH_ITER(hh, hashtable, current_vertex, tmp){
+		normalize(current_vertex -> normal);
+	}
 }
 
 
