@@ -45,6 +45,11 @@ Acceleration structures weren't added to this engine. As such, please be conserv
 
 Animation was not tested with this. However, given the amount of time needed to generate one frame, animation is not recommended.
 
+There are supports for multiple lightings, but these supports were never tested. Thus, some of the lightings in my_main.c are not features. 
+
+# Methodology
+For the vertex normal, a hashtable was created using UTHASH which can incorporate any C structure. The hashtable's main functions are finding and adding vertices. By iterating through a triangle's points, the hashtable can determine the vertex normal corresponding to the set of triangular coordinates. 
+
 # Bugs
 * The front polygon of boxes doesn't render
 * There are some artifacts on the reflection of the torus
