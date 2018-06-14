@@ -13,8 +13,9 @@ struct Object *new_object(
 	res->diffuse_consts[GREEN] = dG;
 	res->diffuse_consts[BLUE] = dB;
 	res->behavior = behav;
-	
+	gen_vertex_norm(p);
 	return res;
+
 }
 
 void free_object(struct Object *obj) {
@@ -424,11 +425,10 @@ struct my_struct {
     UT_hash_handle hh; /* makes this structure hashable */
 };
 
-struct my_struct *hashtable = NULL;
-
-void add_vertex(char *vertex, float *normal)
+void add_vertex(struct my_struct *hashtable, char *vertex, float *normal)
 {
     struct my_struct *s;
+
 
     HASH_FIND(hh, hashtable, &vertex, sizeof(char *), s);  /* vertex already in the hash? */
     if (s==NULL) {
@@ -446,14 +446,14 @@ void add_vertex(char *vertex, float *normal)
     
 }
 
-struct my_struct *find_vertex(char *vertex) {
+struct my_struct *find_vertex(struct my_struct *hashtable, char *vertex) {
     struct my_struct *s;
 
    HASH_FIND(hh, hashtable, &vertex, sizeof(char *), s);
     return s;
 }
 
-void delete_all()
+void delete_all(struct my_struct *hashtable )
 {
     struct my_struct *current_vertex, *tmp;
 
@@ -463,7 +463,7 @@ void delete_all()
     }
 }
 
-void print_hashtable()
+void print_hashtable(struct my_struct *hashtable )
 {
     struct my_struct *s;
 
@@ -473,6 +473,7 @@ void print_hashtable()
 }
 
 void gen_vertex_norm(struct Matrix *m){
+	struct my_struct *hashtable = NULL;
 	int c, t = 0;
 	char buf[256];
 	// Iterate through the triangle
@@ -481,7 +482,7 @@ void gen_vertex_norm(struct Matrix *m){
 		find_norm(m,t,t+1,t+2, norm_out);
 		for (c = t; c < t + 3; c++){
 			sprintf(buf, "%f6.3,%f6.3,%f6.3", m -> m[0][c],m -> m[1][c],m -> m[2][c]);
-			add_vertex(buf, norm_out);
+			add_vertex(hashtable,buf, norm_out);
 		}
 	}
 	struct my_struct *current_vertex, *tmp;

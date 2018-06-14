@@ -27,6 +27,7 @@ struct Object {
 	struct Matrix *polys;
 	float diffuse_consts[3];	//r, g, b
 	int behavior;	//use the above constants
+	struct my_struct *vector_table;
 };
 
 //Note: the matrix passed into polys is copied
@@ -68,5 +69,6 @@ void add_torus(struct Matrix *m, float cx, float cy, float cz,
 struct Matrix* torus_points(float cx, float cy, float cz,
 	float r1, float r2, int step);
 
+void gen_vertex_norm(struct Matrix *m);
 #endif
 
