@@ -8,6 +8,7 @@
 #define SHAPES_H
 
 #include"matrix.h"
+#include"uthash.h"
 
 //a,b,c,d are coefficients
 #define CUBIC(a, b, c, d, x)	(a*(x)*(x)*(x) + b*(x)*(x) + c*(x) + d)
@@ -27,7 +28,19 @@ struct Object {
 	struct Matrix *polys;
 	float diffuse_consts[3];	//r, g, b
 	int behavior;	//use the above constants
-	struct my_struct *vector_table;
+	struct Vertex *vertex_table;
+};
+
+struct my_struct {
+    char vertex[256];            /* we'll use this field as the key */
+    float normal[3];             
+    UT_hash_handle hh; /* makes this structure hashable */
+};
+
+struct Vertex {
+	char vertex_key[256];
+	float normal[3];             
+	UT_hash_handle hh;
 };
 
 //Note: the matrix passed into polys is copied
@@ -69,6 +82,15 @@ void add_torus(struct Matrix *m, float cx, float cy, float cz,
 struct Matrix* torus_points(float cx, float cy, float cz,
 	float r1, float r2, int step);
 
-void gen_vertex_norm(struct Matrix *m);
+void add_vertex(struct Vertex **hashtable, char *vertex,
+	float *normal);
+struct Vertex *find_vertex(struct Vertex **hashtable,
+		char *vertex);
+void delete_all(struct Vertex **hashtable );
+void print_hashtable(struct Vertex **hashtable);
+void gen_vertex_norm(struct Vertex **vertex_table,
+		struct Matrix *m);
+struct Vertex *find_vertex(struct Vertex **hashtable,
+		char *vertex);
 #endif
 

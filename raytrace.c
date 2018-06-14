@@ -291,6 +291,7 @@ struct Pixel *trace(struct Ray *ray,
 	struct Pixel *color = 0;
 	int cur_poly, cur_obj;
 	float t, u, v;
+	float u_closest, v_closest;
 	int closest_poly = -1, closest_obj = -1;
 
 	for (cur_obj = 0; cur_obj < obj_count; cur_obj++) {//obj loop
@@ -317,6 +318,8 @@ struct Pixel *trace(struct Ray *ray,
 					ray->t = t;
 					closest_poly = cur_poly;
 					closest_obj = cur_obj;
+					u_closest = u;
+					v_closest = v;
 				}
 
 			}
@@ -328,10 +331,86 @@ struct Pixel *trace(struct Ray *ray,
 		color = (struct Pixel *)malloc(sizeof(struct Pixel));
 		pixel_color(color, 0, 0, 0);
 		//printf("final t: %f\n", prim->t);
-		float normal[3];
-		find_norm(objs[closest_obj]->polys,
-			closest_poly, closest_poly+1,
-			closest_poly+2, normal);
+		//float normal[3];
+		//find_norm(objs[closest_obj]->polys,
+			//closest_poly, closest_poly+1,
+			//closest_poly+2, normal);
+
+		float vertex1[] = {
+			objs[closest_obj]->polys->
+			m[0][closest_poly],
+			objs[closest_obj]->polys->
+			m[1][closest_poly],
+			objs[closest_obj]->polys->
+			m[2][closest_poly]};
+		float vertex2[] = {
+			objs[closest_obj]->polys->
+			m[0][closest_poly+1],
+			objs[closest_obj]->polys->
+			m[1][closest_poly+1],
+			objs[closest_obj]->polys->
+			m[2][closest_poly+1]};
+		float vertex3[] = {
+			objs[closest_obj]->polys->
+			m[0][closest_poly+2],
+			objs[closest_obj]->polys->
+			m[1][closest_poly+2],
+			objs[closest_obj]->polys->
+			m[2][closest_poly+2]};
+
+		char *vertex_key1 =
+			(char *)malloc(256);
+		snprintf(vertex_key1, 256,
+			"%.3f,%.3f,%.3f", 
+			vertex1[0],
+			vertex1[1],
+			vertex1[2]);
+		
+		char *vertex_key2 =
+			(char *)malloc(256);
+		snprintf(vertex_key2, 256,
+			"%.3f,%.3f,%.3f", 
+			vertex2[0],
+			vertex2[1],
+			vertex2[2]);
+		
+		char *vertex_key3 =
+			(char *)malloc(256);
+		snprintf(vertex_key3, 256,
+			"%.3f,%.3f,%.3f", 
+			vertex3[0],
+			vertex3[1],
+			vertex3[2]);
+		
+		struct Vertex *v1 =
+			find_vertex(
+				&objs[closest_obj]->vertex_table,
+				vertex_key1);
+		struct Vertex *v2 =
+			find_vertex(
+				&objs[closest_obj]->vertex_table,
+				vertex_key2);
+		struct Vertex *v3 =
+			find_vertex(
+				&objs[closest_obj]->vertex_table,
+				vertex_key3);
+		/*
+		printf("%f,%f,%f\n",
+			norm->normal[0],
+			norm->normal[1],
+			norm->normal[2]);
+			*/
+		float normal[] = {
+			v1->normal[0]*(1-u_closest-v_closest) +
+			v2->normal[0]*(u_closest) +
+			v3->normal[0]*(v_closest),
+			v1->normal[1]*(1-u_closest-v_closest) +
+			v2->normal[1]*(u_closest) +
+			v3->normal[1]*(v_closest),
+			v1->normal[2]*(1-u_closest-v_closest) +
+			v2->normal[2]*(u_closest) +
+			v3->normal[2]*(v_closest)
+		};
 
 		int cur_light;
 		for (	cur_light = 0;
@@ -359,8 +438,9 @@ struct Pixel *trace(struct Ray *ray,
 				
 				struct Pixel *temp_color =
 					get_lighting_matte(
-						lights[cur_light],
-						normal, .3, .5);
+					lights[cur_light],
+					//normal, .3, .5);
+					normal, .3, .5);
 				
 				add_pixel(color, temp_color);
 				

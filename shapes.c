@@ -13,7 +13,9 @@ struct Object *new_object(
 	res->diffuse_consts[GREEN] = dG;
 	res->diffuse_consts[BLUE] = dB;
 	res->behavior = behav;
-	gen_vertex_norm(p);
+	res->vertex_table = NULL;
+	gen_vertex_norm(&res->vertex_table, p);
+	//print_hashtable(&res->vertex_table);
 	return res;
 
 }
@@ -415,80 +417,101 @@ struct Matrix* torus_points(float cx, float cy, float cz,
 	return m;
 }
 
+//hash table ops
 
-//Any C structure can be stored in a hash table using uthash
+void add_vertex(struct Vertex **hashtable, char *vertex,
+	float *normal) {
+    struct Vertex *s = NULL;
 
-
-struct my_struct {
-    char vertex[256];            /* we'll use this field as the key */
-    float normal[3];             
-    UT_hash_handle hh; /* makes this structure hashable */
-};
-
-void add_vertex(struct my_struct *hashtable, char *vertex, float *normal)
-{
-    struct my_struct *s;
-
-
-    HASH_FIND(hh, hashtable, &vertex, sizeof(char *), s);  /* vertex already in the hash? */
+    //vertex already in the hash?
+    HASH_FIND_STR(*hashtable, vertex, s);
     if (s==NULL) {
-        s = (struct my_struct*)malloc(sizeof(struct my_struct));
-        strcpy(s->vertex , vertex);
-        HASH_ADD( hh, hashtable, vertex, sizeof(char *), s );  /* vertex: name of key field */
-        memcpy(s->normal, normal, sizeof(float) * 3);
+        s = (struct Vertex*)malloc(sizeof(struct Vertex));
+        strncpy(s->vertex_key, vertex, strlen(vertex)+1);
+	
+	//the name of the field acting as the id must be passed
+        HASH_ADD_STR(*hashtable, vertex_key, s);
+	memcpy(s->normal, normal, sizeof(float) * 3);
     }
     else{
     	int i = 0;
     	for (; i < 3; i++){
-    		s -> normal[i] += normal[i];
+    		s->normal[i] += normal[i];
     	}
     }
-    
+    /*
+	struct Vertex *temp =
+		find_vertex(hashtable,
+			"5.000,-2.000,-18.000");
+			*/
+	//HASH_FIND_STR(*hashtable,"5.000,-2.000,-18.000",s);
+	//if (s != 0) printf("found inins\n");
+	//if (temp != 0) printf("found inintmep\n");
 }
 
-struct my_struct *find_vertex(struct my_struct *hashtable, char *vertex) {
-    struct my_struct *s;
+struct Vertex *find_vertex(struct Vertex **hashtable,
+		char *vertex) {
+    struct Vertex *s;
 
-   HASH_FIND(hh, hashtable, &vertex, sizeof(char *), s);
+    HASH_FIND_STR(*hashtable, vertex, s);
+    //if (s != 0) printf("key found: %s\n", s->vertex_key);
     return s;
 }
 
-void delete_all(struct my_struct *hashtable )
+void delete_all(struct Vertex **hashtable )
 {
-    struct my_struct *current_vertex, *tmp;
+    struct Vertex *current_vertex, *tmp;
 
-    HASH_ITER(hh, hashtable, current_vertex, tmp) {
-        HASH_DEL(hashtable,current_vertex);  /* delete it (hashtable advances to next) */
+    HASH_ITER(hh, *hashtable, current_vertex, tmp) {
+        HASH_DEL(*hashtable,current_vertex);  /* delete it (hashtable advances to next) */
         free(current_vertex);            /* free it */
     }
 }
 
-void print_hashtable(struct my_struct *hashtable )
+void print_hashtable(struct Vertex **hashtable )
 {
-    struct my_struct *s;
+    struct Vertex *s;
 
-    for(s=hashtable; s != NULL; s=(struct my_struct*)(s->hh.next)) {
-        printf("Vertex %s\n", s->vertex);
+    for(s=*hashtable; s != NULL; s=(struct Vertex*)(s->hh.next)) {
+        printf("Vertex %s\n", s->vertex_key);
     }
 }
 
-void gen_vertex_norm(struct Matrix *m){
-	struct my_struct *hashtable = NULL;
+void gen_vertex_norm(struct Vertex **vertex_table,
+		struct Matrix *m){
+	//struct Vertex *hashtable = NULL;
 	int c, t = 0;
 	char buf[256];
 	// Iterate through the triangle
-	for (; t < m -> cols; t+=3){
+	for (; t < m->back; t+=3){
 		float norm_out[3];
 		find_norm(m,t,t+1,t+2, norm_out);
 		for (c = t; c < t + 3; c++){
-			sprintf(buf, "%f6.3,%f6.3,%f6.3", m -> m[0][c],m -> m[1][c],m -> m[2][c]);
-			add_vertex(hashtable,buf, norm_out);
+			/*
+			printf("vertex: %f,%f,%f\n",
+				m->m[0][c],
+				m->m[1][c],
+				m->m[2][c]);
+				*/
+			snprintf(buf, 256, "%.3f,%.3f,%.3f",
+				m->m[0][c],
+				m->m[1][c],
+				m->m[2][c]);
+			add_vertex(vertex_table, buf, norm_out);
 		}
 	}
-	struct my_struct *current_vertex, *tmp;
-	HASH_ITER(hh, hashtable, current_vertex, tmp){
-		normalize(current_vertex -> normal);
+	struct Vertex *current_vertex, *tmp;
+	HASH_ITER(hh, *vertex_table, current_vertex, tmp){
+		normalize(current_vertex->normal);
 	}
+	/*
+	print_hashtable(vertex_table);
+	
+	struct Vertex *temp =
+		find_vertex(vertex_table,
+			"5.000,-2.000,-18.000");
+	if (temp != 0) printf("found in\n");
+	*/
 }
 
 
