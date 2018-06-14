@@ -37,18 +37,16 @@ The following properties are supported:
 Note that the additional MDL functionality doesn't work with other additional commands that may be used with the two shapes, as the other functionality was not used for this project.
 
 ### Additional Notes
-Ray tracing is a computationally intensive method of image generation, so rendering an image will take a few minutes.
-
-Boxes are treated differently from tori and spheres in that they act as an "opaque mirror." This was used to easily demonstrate the reflection and shadows.
-
-Acceleration structures weren't added to this engine. As such, please be conservative with the amount of shapes added to the scene (especially for spheres and tori).
-
-Animation was not tested with this. However, given the amount of time needed to generate one frame, animation is not recommended.
-
-There are supports for multiple lightings, but these supports were never tested. Thus, some of the lightings in my_main.c are not features. 
+* Ray tracing is a computationally intensive method of image generation, so rendering an image will take a few minutes.
+* Boxes are treated differently from tori and spheres in that they act as an "opaque mirror." This was used to easily demonstrate the reflection and shadows.
+* Acceleration structures weren't added to this engine. As such, please be conservative with the amount of shapes added to the scene (especially for spheres and tori).
+* Animation was not tested with this. However, given the amount of time needed to generate one frame, animation is not recommended.
+* There is support for multiple lighting, but it was never tested 
 
 # Methodology
-For the vertex normal, a hashtable was created using UTHASH which can incorporate any C structure. The hashtable's main functions are finding and adding vertices. By iterating through a triangle's points, the hashtable can determine the vertex normal corresponding to the set of triangular coordinates. 
+* For the vertex normal, a hashtable was created using UTHASH which can incorporate any C structure. The hashtable's main functions are finding and adding vertices. By iterating through a triangle's points, the hashtable can determine the vertex normal corresponding to the set of triangular coordinates. 
+* Ray triangle intersection uses the [Möller-Trombore algorithm](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm). This allows us to easily interpolate the normals at each point on a surface
+* Reflection and refraction intensities are scaled using the [Fresnel equations](https://en.wikipedia.org/wiki/Fresnel_equations). However, the effects may not be that clear in our program.
 
 # Bugs
 * The front polygon of boxes doesn't render
