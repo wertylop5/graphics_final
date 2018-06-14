@@ -258,10 +258,12 @@ void render(Frame f, struct Object **objs,
 				plot_point_trace(f, w, h, pixel);
 				free(pixel);
 			}
+			/*
 			else {
 				plot_point_trace(f, w,
 					h, &bkgd_pixel);
 			}
+			*/
 		}//end width loop
 	}//end height loop
 }
@@ -322,7 +324,7 @@ struct Pixel *trace(struct Ray *ray,
 		}//end poly loop
 
 		//display only the closest polygon
-		if (closest_poly > 0) {
+		if (closest_poly > -1) {
 		color = (struct Pixel *)malloc(sizeof(struct Pixel));
 		pixel_color(color, 0, 0, 0);
 		//printf("final t: %f\n", prim->t);

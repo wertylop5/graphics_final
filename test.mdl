@@ -1,7 +1,7 @@
 push
 move -1 0 -8
-sphere 2 1 -7 2
-sphere 0 1 0 2 behavior reflect
+sphere 0 1 0 2
+sphere 2 1 -6 2 behavior reflect
 box -4 -2 5 10 1 15
 display
 save test.png

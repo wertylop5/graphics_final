@@ -1,6 +1,6 @@
 #include"include/shapes.h"
 #include"include/lighting.h"
-#include"uthash.h"
+#include"include/uthash.h"
 
 struct Object *new_object(
 		struct Matrix *p,
@@ -416,6 +416,7 @@ struct Matrix* torus_points(float cx, float cy, float cz,
 
 //Any C structure can be stored in a hash table using uthash
 
+
 struct my_struct {
     int vertex;            /* we'll use this field as the key */
     char name[10];             
@@ -443,7 +444,7 @@ struct my_struct *find_vertex(int vertex) {
     HASH_FIND_INT( hashtable, &vertex, s );  
     return s;
 }
-
+/*
 void print_vertex()
 {
     struct my_struct *s;
@@ -452,7 +453,7 @@ void print_vertex()
         printf("user id %d: name %s\n", s->id, s->name);
     }
 }
-
+*/
 void delete_all()
 {
     struct my_struct *current_vertex, *tmp;
