@@ -44,7 +44,7 @@ Note that the additional MDL functionality doesn't work with other additional co
 * There is support for multiple lighting, but it was never tested 
 
 # Methodology
-* For the vertex normal, a hashtable was created using UTHASH which can incorporate any C structure. The hashtable's main functions are finding and adding vertices. By iterating through a triangle's points, the hashtable can determine the vertex normal corresponding to the set of triangular coordinates. 
+* For the vertex normal, a hashtable was created using UTHASH which can incorporate any C structure. The hashtable's main functions are finding and adding vertices. By iterating through a triangle's vertices, the hashtable can determine the vertex normal corresponding to the set of triangular coordinates. 
 * Ray triangle intersection uses the [Möller-Trombore algorithm](https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm). This allows us to easily interpolate the normals at each point on a surface
 * Reflection and refraction intensities are scaled using the [Fresnel equations](https://en.wikipedia.org/wiki/Fresnel_equations). However, the effects may not be that clear in our program.
 
