@@ -41,7 +41,7 @@ void my_main() {
 
 	options.fov = M_PI/4;
 	options.recursion_depth = 3;
-	options.bias = 0.0005f;
+	options.bias = 0.0006f;
 	options.camera_origin[0] = 0.0f;
 	options.camera_origin[1] = 0.0f;
 	options.camera_origin[2] = 0.0f;

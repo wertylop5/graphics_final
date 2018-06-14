@@ -328,14 +328,11 @@ struct Pixel *trace(struct Ray *ray,
 
 		//display only the closest polygon
 		if (closest_poly > -1) {
-		color = (struct Pixel *)malloc(sizeof(struct Pixel));
+		color =(struct Pixel *)malloc(
+				sizeof(struct Pixel));
 		pixel_color(color, 0, 0, 0);
-		//printf("final t: %f\n", prim->t);
-		//float normal[3];
-		//find_norm(objs[closest_obj]->polys,
-			//closest_poly, closest_poly+1,
-			//closest_poly+2, normal);
 
+		//gather up vertices
 		float vertex1[] = {
 			objs[closest_obj]->polys->
 			m[0][closest_poly],
@@ -358,6 +355,7 @@ struct Pixel *trace(struct Ray *ray,
 			objs[closest_obj]->polys->
 			m[2][closest_poly+2]};
 
+		//convert them all to strings
 		char *vertex_key1 =
 			(char *)malloc(256);
 		snprintf(vertex_key1, 256,
@@ -382,6 +380,7 @@ struct Pixel *trace(struct Ray *ray,
 			vertex3[1],
 			vertex3[2]);
 		
+		//look up the vertices
 		struct Vertex *v1 =
 			find_vertex(
 				&objs[closest_obj]->vertex_table,
@@ -394,12 +393,8 @@ struct Pixel *trace(struct Ray *ray,
 			find_vertex(
 				&objs[closest_obj]->vertex_table,
 				vertex_key3);
-		/*
-		printf("%f,%f,%f\n",
-			norm->normal[0],
-			norm->normal[1],
-			norm->normal[2]);
-			*/
+		
+		//now calculate the normal
 		float normal[] = {
 			v1->normal[0]*(1-u_closest-v_closest) +
 			v2->normal[0]*(u_closest) +
@@ -553,6 +548,13 @@ struct Pixel *trace(struct Ray *ray,
 					free_ray(ray);
 					return color;
 				}
+
+				//use the face normal for box
+				float face_normal[3];
+				find_norm(
+				objs[closest_obj]->polys,
+				closest_poly, closest_poly+1,
+				closest_poly+2, face_normal);
 				
 				//display planes in gray
 				pixel_color(color,
@@ -560,7 +562,7 @@ struct Pixel *trace(struct Ray *ray,
 				
 				struct Ray *reflect =
 					new_reflection_ray(
-					ray, normal);
+					ray, face_normal);
 				
 				struct Pixel *temp_color = 
 					trace(reflect,

@@ -1,0 +1,12 @@
+push
+move -1 0 -8
+sphere -1 0 -4 2
+sphere 4 0 -4 2 behavior reflect
+push
+rotate x 45
+torus 2 1 -3 .5 2
+pop
+box -4 -2 5 10 1 15
+display
+save test.png
+

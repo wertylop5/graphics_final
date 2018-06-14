@@ -1,8 +1,0 @@
-push
-move -1 0 -8
-sphere -2 0 -4 2
-sphere 3 0 -4 2 behavior reflect
-box -4 -2 5 10 1 15
-display
-save test.png
-
